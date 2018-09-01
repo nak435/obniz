@@ -1,0 +1,607 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <script src="https://obniz.io/js/jquery-3.2.1.min.js"></script>
+  <script src="https://unpkg.com/obniz@1.9.5/obniz.js" crossorigin="anonymous"></script>
+
+  <style>
+.opps {
+  padding: 1em 0.5em;
+  text-align: center;
+  text-decoration: none;
+  color: silver;
+  border: 2px solid silver;
+  font-size: 24px;
+  display: inline-block;
+  border-radius: 6em;
+  margin: 10px;
+}
+.opps1After {
+  background-color: red;
+  color: white;
+  border: 4px solid white;
+}
+.flexbox {
+  display: -webkit-box;   /* Chrome 4-20, Firefox 2-21, Safari 3.1-6.0 */
+  display: -webkit-flex;  /* Chrome 21-27 */
+  display: -moz-box;      /* Firefox 2-21 */
+  display: -ms-flexbox;   /* IE9 */
+  display: flex;
+}
+.flex-start {
+  -webkit-align-items: flex-start;
+  -ms-flex-align: start;
+  align-items: flex-start;
+}
+  </style>
+  
+</head>
+<body style="background-color: white;">
+
+<div id="obniz-debug"></div>
+<h1>GYSFDMAXB GPS module</h1>
+<!--<textarea id="text" rows="1" style="width:100%;font-size:13px;"></textarea>-->
+<div><iframe id="map" src="https://www.google.com/maps?output=embed&iwloc=B&q=35.710132,139.703268&t=m&z=18" width="400" height="300" frameborder="0" style="border:0" allowfullscreen></iframe><div>
+<small><div id="addr"></div></small>
+<div><h3><span id="timestamp"></span>&nbsp;&nbsp;&nbsp;&nbsp;測位品質: <span id="quality"></span></h3></div>
+<div><canvas id="canvas0" width="120" height="120" frameborder="0" style="border:0"></canvas>
+  <canvas id="canvas1" width="430" height="120" frameborder="0" style="border:0"></canvas></div>
+<div class="flexbox flex-start"><canvas id="canvas2" width="320" height="320" frameborder="0" style="border:0"></canvas>
+  <a id="opps" class="opps">1pps</a></div>
+<table id="tbl" border="1"></table>
+<h2 id="founds"></h2>
+<div id="print"></div>
+<table><tr>
+  <td><h2>受信データ</h2></td>
+  <td><button id="clear">Clear</button></td>
+</tr></table>
+<div id="display"></div>
+<div id="text0"></div>
+<div id="text1"></div>
+<div id="text2"></div>
+<div id="text3"></div>
+<div id="text4"></div>
+<div id="text5"></div>
+<div id="text6"></div>
+<div id="text7"></div>
+<div id="text8"></div>
+<div id="text9"></div>
+<div id="text10"></div>
+<div id="text11"></div>
+<div id="text12"></div>
+<div id="text13"></div>
+<table><tr>
+  <td><h3>GPS<br>power</h3></td>
+  <td><button id="on">ON</button></td>
+  <td><button id="off">OFF</button></td>
+</tr></table>
+
+<script>
+'use strict';
+var tapORclick = (window.ontouchstart===null) ? "touchstart" : "click";
+var obniz = new Obniz("OBNIZ_ID_HERE");
+obniz.onconnect = async function () {
+
+  Obniz.PartsRegistrate(GYSFDMAXB);
+  let gps = obniz.wired("GYSFDMAXB", { vcc:7, gnd:8, txd:9, rxd:10, Opps:11 });
+
+  var gpsInfo;
+  var K = 0;
+  var E = 0;
+
+  gps.start1pps(function() {
+  console.log("1pps received.");
+    $('#opps').addClass('opps1After');
+    setTimeout(function() {
+      $('#opps').removeClass('opps1After');
+    }, 200);
+  });
+  
+  function neSec(p, q) {
+  //not equal serial seconds
+    let P = Math.round(p);
+    let Q = Math.round(q);
+    return P != Q;
+  }
+
+  function d2(v) {
+    return ('0' + v).slice(-2);
+  }
+  function localDatetime(d) {
+    let local = d.getFullYear() + "/"
+        + d2(d.getMonth() + 1)  + "/"
+        + d2(d.getDate())  + " "
+        + d2(d.getHours())  + ":"
+        + d2(d.getMinutes()) + ":"
+        + d2(d.getSeconds());
+    return local;
+  }
+
+  function mainLoop() {
+    var d = gps.getEditedData();
+    if (d.enable) {
+      if (d.GPGGA) { $("#text2").text(d.GPGGA.join(","));
+        let p = d.GPGGA;
+        if (p[6] != "0") {
+          var k = GYSFDMAXB.nmea2s(p[2]);
+          var e = GYSFDMAXB.nmea2s(p[4]);
+          if (neSec(k, K) || neSec(e, E)) {
+            K=k; E=e;
+            k = gps.NMEA2DD(p[2]);
+            e = gps.NMEA2DD(p[4]);
+            let src="https://www.google.com/maps?output=embed&iwloc=A&q=現在地@" + k + "," + e;
+            $("#map").attr("src", src);
+            getAddr(k, e);
+          }
+        }
+        let gpsQuality = ["[0]位置測位できない", "[1]SPS(標準測位方式)", "[2]dGPS(干渉測位方式)"];
+        let n = Number(p[6]);
+        $("#quality").text(gpsQuality[n]);
+      }
+      if (d.GPGLL) $("#text3").text(d.GPGLL.join(","));
+      if (d.GPGSA) $("#text4").text(d.GPGSA.join(","));
+      if (d.GPGSV[0]) { $("#text5").text(d.GPGSV[0].join(","));
+        var canvas = $('#canvas1')[0];
+        if (canvas.getContext) {
+          let width = $('#canvas1').prop("width");
+          let height = $('#canvas1').prop("height");
+          let context = canvas.getContext('2d');
+          context.save();
+
+          context.fillStyle = '#FFFFCC';
+          context.fillRect(0, 0, width, height);
+          context.strokeStyle = "gray";
+
+          context.beginPath();
+          context.textAlign = 'left';
+          context.textBaseline = 'top';
+          context.fillStyle = 'black';
+          context.fillText("衛星の受信感度(SNR(Signal to Noise Ratio)[dB])", 2, 2, width);
+          context.stroke();
+
+          var p = d.GPGSV[0];
+          gpsInfo = [[p[4], p[5], p[6], p[7]], [p[8], p[9], p[10], p[11]],
+                    [p[12], p[13], p[14], p[15]], [p[16], p[17], p[18], p[19]]];
+          if (d.GPGSV[1]) {
+            p = d.GPGSV[1];
+            gpsInfo = gpsInfo.concat([[p[4], p[5], p[6], p[7]], [p[8], p[9], p[10], p[11]],
+                    [p[12], p[13], p[14], p[15]], [p[16], p[17], p[18], p[19]]]);
+          }
+          if (d.GPGSV[2]) {
+            p = d.GPGSV[2];
+            gpsInfo = gpsInfo.concat([[p[4], p[5], p[6], p[7]], [p[8], p[9], p[10], p[11]],
+                    [p[12], p[13], p[14], p[15]], [p[16], p[17], p[18], p[19]]]);
+          }
+          if (d.GPGSV[3]) {
+            p = d.GPGSV[3];
+            gpsInfo = gpsInfo.concat([[p[4], p[5], p[6], p[7]], [p[8], p[9], p[10], p[11]],
+                    [p[12], p[13], p[14], p[15]], [p[16], p[17], p[18], p[19]]]);
+          }
+
+          context.beginPath();
+          context.textAlign = 'center';
+          context.textBaseline = 'bottom';
+          context.fillStyle = 'black';
+          let newFont = "12" + context.font.substr(2);
+          context.font = newFont;
+          gpsInfo.forEach(function(value, index) {
+            let q = value;
+            if (q[1]) {
+              context.fillText(q[0], index*25+30, 118, width);
+            }
+          });
+          context.stroke();
+
+          context.beginPath();
+          context.textAlign = 'center';
+          context.textBaseline = 'bottom';
+          context.fillStyle = 'gray';
+          newFont = "9" + context.font.substr(2);
+          context.font = newFont;
+          gpsInfo.forEach(function(value, index) {
+            let q = value;
+            let snr = Number(q[3]);
+            if (!isNaN(snr) && (snr>0)) {
+              context.fillText(q[3] + "dB", index*25+30, 105-Math.round(snr*0.9)-2, width);
+            } else {
+              if (q[1]) context.fillText("0dB", index*25+30, 105-2, width);
+            }
+          });
+          context.stroke();
+
+          gpsInfo.forEach(function(value, index) {
+            let q = value;
+            let snr = Number(q[3]);
+            if (!isNaN(snr) && (snr>0)) {
+              let w = 20, h = Math.round(snr*0.9);
+              let x = index*25+20, y = 105-h;
+              context.fillStyle = 'lime';
+              context.fillRect(x, y, w, h);
+            } else {
+              context.fillStyle = 'silver';
+              if (q[1]) context.fillRect(index*25+20, 105-1, 20, 1);
+            }
+          });
+          context.restore();
+        }
+        canvas = $('#canvas2')[0];
+        if (canvas.getContext) {
+          let width = $('#canvas2').prop("width");
+          let height = $('#canvas2').prop("height");
+          let context = canvas.getContext('2d');
+
+          context.fillStyle = '#FFFFCC';
+          context.fillRect(0, 0, width, height);
+
+          context.beginPath();
+          context.textAlign = 'left';
+          context.textBaseline = 'top';
+          context.fillStyle = 'black';
+          context.fillText("衛星の位置(グレーは未使用)", 2, 2, width);
+          context.stroke();
+
+          context.beginPath();
+          context.strokeStyle = "gray";
+          context.moveTo(0, height/2);
+          context.lineTo(width, height/2);
+          context.moveTo(width/2, 0);
+          context.lineTo(width/2, height);
+          context.stroke();
+
+          context.beginPath();
+          context.arc(width/2, height/2, (90- 0)*3.3/2, 0, Math.PI*2); //仰角0°
+          context.arc(width/2, height/2, (90-30)*3.3/2, 0, Math.PI*2); //仰角30°
+          context.arc(width/2, height/2, (90-60)*3.3/2, 0, Math.PI*2); //仰角60°
+          context.stroke();
+
+          gpsInfo.forEach(function(value, index) {
+            const r = 20;
+            let q = value;
+            let snr = Number(q[3]);
+            let draw = false;
+            if (!isNaN(snr) && (snr>0)) {
+              draw = true;
+              context.fillStyle = 'lime';
+            } else if (q[1]) {
+              draw = true;
+              context.fillStyle = 'silver';
+            }
+            if (draw) {
+              context.beginPath();
+              let elevation = (90-Number(q[1]))*3.3/2;
+              let angle = (Number(q[2]) - 90) / 180 * Math.PI;
+              let x = Math.round(width/2 + elevation * Math.cos(angle));
+              let y = Math.round(height/2 + elevation * Math.sin(angle));
+              context.arc(x, y, r, 0, Math.PI*2);
+              context.fill();
+            }
+          });
+          context.textAlign = 'center';
+          context.textBaseline = 'middle';
+          context.fillStyle = 'black';
+          gpsInfo.forEach(function(value, index) {
+            const r = 20;
+            let q = value;
+            let snr = Number(q[3]);
+            let draw = false;
+            if (!isNaN(snr) && (snr>0)) {
+              draw = true;
+            } else if (q[1]) {
+              draw = true;
+            }
+            if (draw) {
+              context.beginPath();
+              let elevation = (90-Number(q[1]))*3.3/2;
+              let angle = (Number(q[2]) - 90) / 180 * Math.PI;
+              let x = Math.round(width/2 + elevation * Math.cos(angle));
+              let y = Math.round(height/2 + elevation * Math.sin(angle));
+              context.fillText(q[0], x, y, width);
+              context.stroke();
+            }
+          });
+
+        }
+      }
+      if (d.GPGSV[1]) $("#text6").text(d.GPGSV[1].join(","));
+      if (d.GPGSV[2]) $("#text7").text(d.GPGSV[2].join(","));
+      if (d.GPGSV[3]) $("#text8").text(d.GPGSV[3].join(","));
+      if (d.GPRMC) $("#text11").text(d.GPRMC.join(","));
+      if (d.GPVTG) { $("#text12").text(d.GPVTG.join(","));
+        let p = d.GPVTG;
+        var canvas = $('#canvas0')[0];
+        if ((p[6] != "0") && canvas.getContext) {
+          let width = $('#canvas0').prop("width");
+          let height = $('#canvas0').prop("height");
+          let context = canvas.getContext('2d');
+          context.fillStyle = '#FFFFCC';
+          context.fillRect(0, 0, width, height);
+          context.strokeStyle = "gray";
+
+        context.save();
+          context.beginPath();
+          context.arc(60, 60, 40, 0, Math.PI*2);
+          context.moveTo(60, 60);
+          context.lineTo(60, 15);
+
+          context.textAlign = 'center';
+          context.textBaseline = 'bottom';
+          context.fillStyle = 'red';
+          let newFont = "bold 12" + context.font.substr(2);
+          context.font = newFont;
+          context.fillText("N", 60, 15, width);
+          context.stroke();
+
+          context.beginPath();
+          context.strokeStyle = (p[9] != "N") ? "red" : "black";
+          context.moveTo(60, 60);
+          let angle = (Number(p[1]) - 90) / 180 * Math.PI;
+          let x = Math.round(60 + 40 * Math.cos(angle));
+          let y = Math.round(60 + 40 * Math.sin(angle));
+          context.lineTo(x, y);
+          context.stroke();
+          context.beginPath();
+          context.fillStyle = (p[9] != "N") ? "red" : "black";
+          context.arc(x, y, 2, 0, Math.PI*2);
+          context.fill();
+        context.restore();
+
+          context.beginPath();
+          context.textAlign = 'center';
+          context.textBaseline = 'bottom';
+          context.fillStyle = 'black';
+          let speed = (p[9] != "N") ? p[7] + " km/h" : "unavailable";
+          context.fillText(speed, 60, 70, width);
+          context.stroke(); 
+        }
+      }
+      if (d.GPZDA) { $("#text13").text(d.GPZDA.join(","));
+        $("#timestamp").text(localDatetime(d.timestamp) + " (JST)");
+      }
+      if (d.PMTK010) $("#text0").text(d.PMTK010.join(","));
+      if (d.PMTK011) $("#text1").text(d.PMTK011.join(","));
+      
+    }
+    setTimeout(mainLoop, 100);
+  }
+
+
+  function clearText() {
+    for (let n=0; n<14; n++) {
+      let id = "#text" + n;
+      $(id).text("");
+    }
+    $("#addr").text("");
+  }
+  $("#clear").on(tapORclick, function(){
+    clearText();
+  });
+
+  obniz.switch.onchange = function(state) {
+    $('#print').text(state);
+    obniz.display.clear();
+    obniz.display.print(state);
+  }
+
+  $('#on').on(tapORclick, function() {
+    clearText();
+    obniz.io7.output(true);
+    $('body').css('background-color', 'white');
+  });
+  $('#off').on(tapORclick, function() {
+    obniz.io7.output(false);
+    $('body').css('background-color', 'silver');
+  });
+
+ function waitMillisec(millisec) {
+    var objDef = new $.Deferred;
+    setTimeout(function () {
+      objDef.resolve(millisec);
+    }, millisec);
+    return objDef.promise();
+  };
+
+  function readline() {
+    let results = [];
+    if (gps.uart.isDataExists()) {
+      let pos = gps.uart.received.indexOf(0x0A);
+      if (pos >= 0) {
+        results = gps.uart.received.slice(0, pos-1);
+        gps.uart.received.splice(0, pos+1);
+        return gps.uart.tryConvertString(results);
+      }
+    }
+    return "";
+  }
+
+  function getAddr(lat, lng) {
+
+    let url = "http://maps.google.com/maps/api/geocode/json?latlng=" + lat + "," + lng + "&sensor=false&language=ja";
+//  console.log("Loading..." + url);
+
+    $.get(url, function(data, status) {
+      let adr = data.results[1].formatted_address;
+      let adr2 = adr.substr(adr.lastIndexOf(" "));
+/*
+      console.log("status: " + status);
+      console.log(data);
+      console.log(adr);
+      console.log(adr2);
+*/
+      $("#addr").text(adr2);
+
+    });
+  }
+
+  setInterval(function(){ E=0; K=0; }, 60*1000);
+  
+  setTimeout(mainLoop, 10);
+
+}
+
+//-----------------------------------------------
+class GYSFDMAXB {
+  constructor() {
+    this.keys = ['vcc', 'txd', 'rxd', 'gnd', 'Opps'];
+    this.requiredKeys = ['txd', 'rxd'];
+
+    this.ioKeys = this.keys;
+    this.displayName = 'gps';
+    this.displayIoNames = { txd:'txd', rxd:'rxd', Opps:'1pps' };
+  }
+
+  static info() {
+    return {
+      name: 'GYSFDMAXB',
+    };
+  }
+
+  wired(obniz) {
+    this.obniz = obniz;
+    this.tx = this.params.txd;
+    this.rx = this.params.rxd;
+    this.vcc = this.params.vcc;
+    this.gnd = this.params.gnd;
+    this.Opps = this.params.Opps;
+
+    this.obniz.setVccGnd(this.params.vcc, this.params.gnd, '5v');
+    this.uart = obniz.getFreeUart();
+    this.uart.start({tx: this.params.txd, rx: this.params.rxd, baud:9600, drive:"3v"});
+
+    this.editedData = {};
+    this.editedData.enable = false;
+    this.editedData.GPGSV = new Array(4);
+    
+    this.on1pps = null;
+    this.last1pps = 0; 
+  }
+  
+  start1pps(callback) {
+    this.on1pps = callback;
+    if (callback) {
+      this.last1pps = 2;
+      this.obniz.getAD(this.Opps).self = this;
+      this.obniz.getAD(this.Opps).start(function(voltage){
+        let vol = Math.round(voltage);
+        if (vol != this.self.last1pps) {
+          this.self.last1pps = vol;
+        //console.log("debug: 1pps");
+          if ((vol == 0) && this.self.on1pps /*&& this.self.editedData.enable*/) { this.self.on1pps(); }
+        }
+      });
+    } else {
+      this.obniz.getAD(this.Opps).end();
+    }
+  }
+
+  readSentence() {
+    let results = [];
+    if (this.uart.isDataExists()) {
+      let pos = this.uart.received.indexOf(0x0A);
+      if (pos >= 0) {
+        results = this.uart.received.slice(0, pos-1);
+        this.uart.received.splice(0, pos+1);
+        return this.uart.tryConvertString(results);
+      }
+    }
+    return "";
+  }
+
+  getEditedData() {
+    var sentence = this.readSentence();
+    this.editedData.enable = false;
+    while (sentence.length > 0) {
+      let part = sentence.split(",");
+      if (sentence.slice(-4, -3) != ",") {
+        let st = part[part.length-1].slice(0, -3);
+        part.push(part[part.length-1].slice(-3));
+        part[part.length-2] = st;
+      }
+      this.editedData.sentence = part.join(",");
+      switch (part[0]) {
+      case "$GPGGA":
+        this.editedData.GPGGA = part;
+        break;
+      case "$GPGLL":
+        this.editedData.GPGLL = part;
+        break;
+      case "$GPGSA":
+        this.editedData.GPGSA = part;
+        break;
+      case "$GPGSV":
+        let n = Number(part[2]);
+        if (n > this.editedData.GPGSV.length) {
+          while (n > this.editedData.GPGSV.length) {
+            this.editedData.GPGSV.push([]);
+          }
+        }
+        this.editedData.GPGSV[n-1] = part;
+        break;
+      case "$GPRMC":
+        this.editedData.GPRMC = part;
+        break;
+      case "$GPVTG":
+        this.editedData.GPVTG = part;
+        break;
+      case "$GPZDA":
+        this.editedData.GPZDA = part;
+        let utc = part[4] + "/" + part[3] + "/" + part[2] + " "
+          + part[1].substring(0, 2) + ":" + part[1].substring(2, 4) + ":" + part[1].substring(4, 6) + " +00:00";
+        this.editedData.timestamp = new Date(utc);
+        break;
+      default:
+        let format = part[0].substr(1);
+        this.editedData[format] = part;
+      }
+
+      this.editedData.enable = true;
+      sentence = this.readSentence();
+    }
+    return this.editedData;
+  }
+
+  // NMEAの緯度経度を「度分秒」(DMS)の文字列に変換
+  static nmea2dms(v) {
+    let val = Number(v);
+    let d = Math.floor(val / 100);
+    let m = Math.floor(((val / 100.0) - d) * 100.0);
+    let s = ((((val / 100.0) - d) * 100.0) - m) * 60;
+    return d + "°" + m + "'" + s.toFixed(1) + '"';
+  }
+
+  // NMEAの緯度経度を「度分」(DM)の文字列に変換
+  static nmea2dm(v) {
+    let val = Number(v);
+    let d = Math.floor(val / 100.0);
+    let m = ((val / 100.0) - d) * 100.0;
+    return d + "°" + m.toFixed(4) + "'";
+  }
+
+  // NMEAの緯度経度を「度」(DD)の文字列に変換
+  static nmea2dd(v) {
+    let val = Number(v);
+    let d = Math.floor(val / 100.0);
+    let m = Math.floor((((val / 100.0) - d) * 100.0) / 60);
+    let s = (((((val / 100.0) - d) * 100.0) - m) * 60) / (60 * 60);
+    return (d + m + s).toFixed(6);
+  }
+
+  // NMEAの緯度経度を「秒」(S)の数値に変換
+  static nmea2s(v) {
+    let val = Number(v);
+    let d = Math.floor(val / 100.0);
+    let m = Math.floor((((val / 100.0) - d) * 100.0) / 60);
+    let s = (((((val / 100.0) - d) * 100.0) - m) * 60) / (60 * 60);
+    return (d + m + s) / (1.0 / 60.0 / 60.0);
+  }
+
+}
+
+if (typeof module === 'object') {
+  module.exports = GYSFDMAXB;
+}
+</script>
+</body>
+</html>
+
