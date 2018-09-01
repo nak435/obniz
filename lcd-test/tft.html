@@ -1,0 +1,588 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <script src="https://obniz.io/js/jquery-3.2.1.min.js"></script>
+  <script src="https://unpkg.com/obniz@1.9.4/obniz.js" crossorigin="anonymous"></script>
+
+  <script src="https://ssl.nak435.com/obniz/obniz.js"></script>
+  <link rel="stylesheet" type="text/css" href="https://ssl.nak435.com/obniz/obniz.css">
+</head>
+<body>
+
+<div id="obniz-debug"></div>
+
+<h2>SainSmart ST7735 1.8" TFT LCD 128x160 pixel (SPI interface)</h2>
+<h1>デモ</h1>
+<div id="panel" style="display:none;">
+<table>
+  <tr><td>
+    <button id="2" class="buttonF">some rectangle</button>
+    <button id="3" class="buttonF">エラー</button>
+    <button id="4" class="buttonF">fill black</button>
+  </td></tr>
+</table>
+</div>
+
+<div id="print"></div>
+
+<script>
+'use strict';
+var tapORclick = (window.ontouchstart===null) ? "touchstart" : "click";
+  
+// console.time("start");
+
+var obniz = new Obniz("9659-3725");
+
+//obniz.debugprint = true;
+
+obniz.onconnect = async function () {
+
+/* pin assign
+    VCC    6  5v
+    GND    5  gnd
+    SCL    4  sclk
+    SDA    3  mosi
+    DC     2  d/cx
+    RES    1  reset
+    CS     0  chip select
+*/
+  Obniz.PartsRegistrate(SainSmart_ST7735);  
+  var lcd = obniz.wired("SainSmart_ST7735", {vcc:6, gnd:5, scl:4, sda:3, dc:2, res:1, cs:0});
+
+  console.time("ready");
+
+  lcd.begin(); 
+  lcd.write(ST7735_MADCTL, [0xC0]);
+  lcd.fillScreen(ST7735_BLACK);  
+  
+  const cl = [ST7735_WHITE, ST7735_YELLOW, ST7735_CYAN, ST7735_GREEN, ST7735_MAGENTA, ST7735_RED, ST7735_BLUE];
+  const func = [
+        ["drawRect", function(x,y,w,h,r,c) {lcd.drawRect(x, y, w, h, c);}],
+        ["fillRect", function(x,y,w,h,r,c) {lcd.fillRect(x, y, w, h, c);}],
+        ["drawRoundRect", function(x,y,w,h,r,c) {lcd.drawRoundRect(x, y, w, h, r, c);}],
+        ["fillRoundRect", function(x,y,w,h,r,c) {lcd.fillRoundRect(x, y, w, h, r, c);}]
+      ];
+
+  $('button').on(tapORclick, async function () {
+    let no = Number(this.id);
+    logAndDisplay("Run: #"+no);
+    switch (no) {
+    case 2: {
+      for (let n=0; n<10; n++) {
+        let round = Math.floor(Math.random() * 2);
+        let fill = Math.floor(Math.random() * 2);
+        let c =  n % 7;
+        let x = Math.floor(Math.random() * 110);
+        let y = Math.floor(Math.random() * 150);
+        let w = Math.floor(Math.random() * (110-x))+10;
+        let h = Math.floor(Math.random() * (150-y))+10;
+        let r = Math.floor(Math.random() * min(3, h, w))+1;
+//obniz.debugprint = true;
+//lcd.debugprint = true;
+        log(func[round<<1 | fill][0] + ": ", round, fill, c, x, y, w, h, r, "="+(w*h));
+        func[round<<1 | fill][1](x, y, w, h, r, cl[c]);
+        await obniz.pingWait();
+      }}
+      break;
+    
+    case 3: {
+        //drawRoundRect: 0, 0, 5, 65, 44, 37, 78, 2, =2886
+        //drawRoundRect: , 1, 0, 2, 57, 123, 33, 33, 3, =1089
+        //fillRoundRect: , 1, 1, 3, 85, 65, 21, 76, 2, =1596
+        //fillRoundRect: , 1, 1, 0, 69, 89, 41, 37, 1, =1517
+        //drawRect: , 0, 0, 1, 83, 15, 33, 34, 1, =1122
+        //fillRoundRect: , 1, 1, 1, 3, 1, 63, 86, 3, =5418
+
+        //fillRoundRect: , 1, 1, 1, 14, 58, 23, 80, 2, =1840
+        let round = 1;
+        let fill = 1;
+        let c =  1;
+        let x = 14;
+        let y = 58;
+        let w = 23;
+        let h = 80;
+        let r = 2;
+        log(func[round<<1 | fill][0] + ": ", round, fill, c, x, y, w, h, r, "="+(w*h));
+        func[round<<1 | fill][1](x, y, w, h, r, cl[c]);
+        await obniz.pingWait();
+      }
+      break;
+
+    case 4: { //fill black
+      await lcd.fillScreen(ST7735_BLACK);
+      await obniz.pingWait();
+      }
+      break;    
+
+    default:
+    
+    }
+   logAndDisplay("compleate");
+
+  });
+
+/*
+  lcd.setTextColor(ST7735_WHITE);
+  lcd.setTextSize(2);
+  lcd.setCursor(30, 70);    
+  lcd.println("ready");
+*/
+  console.timeEnd("ready");
+  $("#panel").css("display", "block");
+  logAndDisplay("ready");
+}
+
+function logAndDisplay(s) {
+  obniz.display.clear();
+  obniz.display.print(s);
+  console.log(s);
+}
+
+//--------------------------------------------------------------
+//SainSmart ST7735 1.8" TFT LCD 128x160 pixel 
+class SainSmart_ST7735 {
+  constructor() {
+    this.keys = ['vcc', 'gnd', 'scl', 'sda', 'dc', 'res', 'cs'];
+    this.required = ['scl', 'sda', 'dc', 'res', 'cs'];
+  }
+
+  static info() {
+    return {
+      name: 'SainSmart_ST7735',
+    };
+  }
+
+  wired(obniz) {
+    this.debugprint = false;
+    this.obniz = obniz;
+    this.dc = obniz.getIO(this.params.dc);
+    this.res = obniz.getIO(this.params.res);
+    this.cs = obniz.getIO(this.params.cs);
+
+    this.obniz.setVccGnd(this.params.vcc, this.params.gnd, '5v');
+    this.params.frequency = 16 * 1000 * 1000; //16MHz
+    this.params.mode = 'master';
+    this.params.clk = this.params.scl; 
+    this.params.mosi = this.params.sda;
+    this.params.drive = '3v';
+    this.spi = this.obniz.getSpiWithConfig(this.params);
+
+    this.dc.output(true);
+    this.cs.output(false);
+    
+    this.width = ST7735_TFTWIDTH;
+    this.height = ST7735_TFTHEIGHT;
+    
+    this.writeBuffer = []; //1024bytes bufferring    
+    
+    this._width = ST7735_TFTWIDTH;
+    this._height = ST7735_TFTHEIGHT;
+    this.rotation  = 0;
+    this.cursor_y  = 0;
+    this.cursor_x  = 0;
+    this.textsize  = 1;
+    this.textcolor = ST7735_WHITE;
+    this.textbgcolor = ST7735_WHITE;
+    this.wrap = true;
+  }
+
+  print_debug(v) {
+    if (this.debugprint) {
+      console.log('SainSmart_ST7735: ' + Array.prototype.slice.call(arguments).join(''));
+    }
+  }
+
+  reset() {
+    this.res.output(false);
+    deadSleep(10);
+    this.res.output(true);
+    deadSleep(10);
+  }
+
+  writeCommand(cmd) {
+    this.dc.output(false);
+    this.cs.output(false);
+    this.spi.write([cmd]);
+    this.cs.output(true);
+  }
+
+  writeData(data) {
+    this.dc.output(true);
+    this.cs.output(false);
+    this.spi.write(data);
+    this.cs.output(true);
+  }
+  
+  write(cmd, data) {
+    if (data.length == 0) return;
+    this.writeCommand(cmd);
+    this.writeData(data);
+  }
+  async asyncwait() {
+    return await this.spi.writeWait([0x00]);
+  }
+  write_flush() {
+    while (this.writeBuffer.length > 0) {
+      if (this.writeBuffer.length > 1024) {
+        let data = this.writeBuffer.slice(0, 1024);
+        this.writeData(data);
+        this.writeBuffer.splice(0, 1024);
+      } else {
+        if (this.writeBuffer.length > 0) this.writeData(this.writeBuffer);
+        this.writeBuffer = [];
+      }
+    }
+  }
+  write_buffer(data) {
+    if (data && data.length > 0) {
+      this.writeBuffer = this.writeBuffer.concat(data);
+    } else {
+      this.write_flush();
+    }
+  }
+
+  newColor(r, g, b) {
+//    this.writeData(r & 0xF8 | g >> 5)
+//    this.writeData(g & 0xFC << 3 | b >> 3)
+    return ((r & 0xF8) << 8) | ((g & 0xFC) << 3) | (b >> 3);
+  }
+  
+  initG() {
+    this.writeCommand(0x11);    //Sleep out & booster on
+    this.obniz.wait(120);
+    this.write(0xB1, [0x01, 0x2C, 0x2D]);
+    this.write(0xB2, [0x01, 0x2C, 0x2D]);
+    this.write(0xB3, [0x01, 0x2C, 0x2D, 0x01, 0x2C, 0x2D]);
+    this.write(0xB4, [0x07]);
+    this.write(0xC0, [0xA2, 0x02, 0x84]);
+    this.write(0xC1, [0xC5]);
+    this.write(0xC2, [0x0A, 0x00]);
+    this.write(0xC3, [0x8A, 0x2A]);
+    this.write(0xC4, [0x8A, 0xEE]);
+    this.write(0xC5, [0x0E]);
+    this.write(0x36, [0x00]);
+    this.write(0xE0, [0x02, 0x1C, 0x07, 0x12, 0x37, 0x32, 0x29, 0x2D, 0x29, 0x25, 0x2B, 0x39, 0x00, 0x01, 0x03, 0x10]);
+    this.write(0xE1, [0x03, 0x1D, 0x07, 0x06, 0x2E, 0x2C, 0x29, 0x2D, 0x2E, 0x2E, 0x37, 0x3F, 0x00, 0x00, 0x02, 0x10]);
+    this.write(0x3A, [0x05]);   // color format: 16bit/pixel
+    this.writeCommand(0x29);
+  }
+  
+  begin() {
+    this.reset();
+    this.initG();
+    this.setRotation(0);
+  }  
+
+  setRotation(m) {
+    const MADCTL_MY  = 0x80;
+    const MADCTL_MX  = 0x40;
+    const MADCTL_MV  = 0x20;
+    const MADCTL_ML  = 0x10;
+    const MADCTL_RGB = 0x00; //always RGB, not BGR
+    const MADCTL_MH  = 0x04;
+
+    let data;
+    let rotation = m % 4; // can't be higher than 3
+    switch (rotation) {
+     case 0:
+      data = [MADCTL_MX | MADCTL_MY | MADCTL_RGB];
+      this.width  = ST7735_TFTWIDTH;
+      this.height = ST7735_TFTHEIGHT;
+      break;
+     case 1:
+      data = [MADCTL_MY | MADCTL_MV | MADCTL_RGB];
+      this.width  = ST7735_TFTHEIGHT;
+      this.height = ST7735_TFTWIDTH;
+      break;
+     case 2:
+      data = [MADCTL_RGB];
+      this.width  = ST7735_TFTWIDTH;
+      this.height = ST7735_TFTHEIGHT;
+      break;
+     case 3:
+      data = [MADCTL_MX | MADCTL_MV | MADCTL_RGB];
+      this.width  = ST7735_TFTHEIGHT;
+      this.height = ST7735_TFTWIDTH;
+      break;
+    }
+    this.write(ST7735_MADCTL, data);
+    this.obniz._drainQueued();
+    this.setAddrWindow(0, 0, this.width-1, this.height-1);
+  }
+
+  setAddrWindow(x0, y0, x1, y1) {
+//    obniz._drainQueued();  //no effect
+this.print_debug("setAddrWindow: ", x0, ", ", y0, " - ", x1, ", ", y1);
+
+    if (x0 < 0) x0 = 0;
+    if (y0 < 0) y0 = 0;
+    if (x1 < 0) x1 = 0;
+    if (y1 < 0) y1 = 0;
+
+  // column addr set
+    this.write(ST7735_CASET, [0x00, x0, 0x00, x1]); // XSTART-XEND
+  // row addr set
+    this.write(ST7735_RASET, [0x00, y0, 0x00, y1]);  // YSTART-YEND
+  // write to RAM
+    this.writeCommand(ST7735_RAMWR);  
+    this.writeBuffer = [];
+  }
+  
+//__swap(a, b) { let t = a; a = b; b = t; }
+
+  fillScreen(color) {
+    this.fillRect(0, 0, this.width, this.height, color);
+  }
+  fillRect(x, y, w, h, color) {
+    // rudimentary clipping (drawChar w/big text requires this)
+    if ((x >= this.width) || (y >= this.height)) return;
+    if ((x + w - 1) >= this.width)  w = this.width  - x;
+    if ((y + h - 1) >= this.height) h = this.height - y;
+
+    this.setAddrWindow(x, y, x+w-1, y+h-1);
+
+    let hi = color >> 8, lo = color & 0xFF;
+    var data = [];
+
+    for(y=h; y>0; y--) {
+      for(x=w; x>0; x--) {
+        data.push(hi);
+        data.push(lo);
+      }
+    }
+    this.write_buffer(data);
+    this.write_buffer(); //for flush
+  }
+  drawRect(x, y, w, h, color) {
+    this.drawHLine(x, y, w, color);
+    this.drawHLine(x, y+h-1, w, color);
+    this.drawVLine(x, y, h, color);
+    this.drawVLine(x+w-1, y, h, color);
+  }
+  drawCircleHelper(x0, y0, r, cornername, color) {
+    var f = 1 - r;
+    var ddF_x = 1;
+    var ddF_y = -2 * r;
+    var x = 0;
+    var y = r;
+
+    while (x<y) {
+      if (f >= 0) {
+        y--;
+        ddF_y += 2;
+        f     += ddF_y;
+      }
+      x++;
+      ddF_x += 2;
+      f     += ddF_x;
+      if (cornername & 0x4) {
+        this.drawPixel(x0 + x, y0 + y, color);
+        this.drawPixel(x0 + y, y0 + x, color);
+      } 
+      if (cornername & 0x2) {
+        this.drawPixel(x0 + x, y0 - y, color);
+        this.drawPixel(x0 + y, y0 - x, color);
+      }
+      if (cornername & 0x8) {
+        this.drawPixel(x0 - y, y0 + x, color);
+        this.drawPixel(x0 - x, y0 + y, color);
+      }
+      if (cornername & 0x1) {
+        this.drawPixel(x0 - y, y0 - x, color);
+        this.drawPixel(x0 - x, y0 - y, color);
+      }
+    }
+  }
+  fillCircleHelper(x0, y0, r, cornername, delta, color) {
+    var f = 1 - r;
+    var ddF_x = 1;
+    var ddF_y = -2 * r;
+    var x = 0;
+    var y = r;
+
+    while (x<y) {
+      if (f >= 0) {
+        y--;
+        ddF_y += 2;
+        f     += ddF_y;
+      }
+      x++;
+      ddF_x += 2;
+      f     += ddF_x;
+
+      if (cornername & 0x1) {
+        this.drawVLine(x0+x, y0-y, 2*y+1+delta, color);
+        this.drawVLine(x0+y, y0-x, 2*x+1+delta, color);
+      }
+      if (cornername & 0x2) {
+        this.drawVLine(x0-x, y0-y, 2*y+1+delta, color);
+        this.drawVLine(x0-y, y0-x, 2*x+1+delta, color);
+      }
+    }
+  }
+  drawRoundRect(x, y, w, h, r, color) {
+    // smarter version
+    this.drawHLine(x+r  , y    , w-2*r, color); // Top
+    this.drawHLine(x+r  , y+h-1, w-2*r, color); // Bottom
+    this.drawVLine(x    , y+r  , h-2*r, color); // Left
+    this.drawVLine(x+w-1, y+r  , h-2*r, color); // Right
+
+    // draw four corners
+    this.drawCircleHelper(x+r    , y+r    , r, 1, color);
+    this.drawCircleHelper(x+w-r-1, y+r    , r, 2, color);
+    this.drawCircleHelper(x+w-r-1, y+h-r-1, r, 4, color);
+    this.drawCircleHelper(x+r    , y+h-r-1, r, 8, color);
+  }
+  fillRoundRect(x, y, w, h, r, color) {
+    // smarter version
+    this.fillRect(x+r, y, w-2*r, h, color);
+
+    // draw four corners
+    this.fillCircleHelper(x+w-r-1, y+r, r, 1, h-2*r-1, color);
+    this.fillCircleHelper(x+r    , y+r, r, 2, h-2*r-1, color);
+  }
+  drawVLine(x, y, h, color) {
+    // Rudimentary clipping
+    if ((x >= this.width) || (y >= this.height)) return;
+    if((y+h-1) >= this.height) h = this.height-y;
+    
+    this.setAddrWindow(x, y, x, y+h-1);
+
+    let hi = color >> 8, lo = color & 0xFF;
+    var data = [];
+    while (h--) {
+      data.push(hi);
+      data.push(lo);
+    }
+    this.writeData(data);
+  }
+  drawHLine(x, y, w, color) {
+    // Rudimentary clipping
+    if ((x >= this.width) || (y >= this.height)) return;
+    if ((x+w-1) >= this.width)  w = this.width-x;
+    
+    this.setAddrWindow(x, y, x+w-1, y);
+
+    let hi = color >> 8, lo = color & 0xFF;
+    var data = [];
+    while (w--) {
+      data.push(hi);
+      data.push(lo);
+    }
+    this.writeData(data);
+  }
+  drawLine(x0, y0, x1, y1, color) {
+    let steep = Math.abs(y1 - y0) > Math.abs(x1 - x0);
+    if (steep) {
+      y0 = [x0, x0 = y0][0]; //this._swap(x0, y0);
+      y1 = [x1, x1 = y1][0]; //this._swap(x1, y1);
+    }
+    if (x0 > x1) {
+      x1 = [x0, x0 = x1][0]; //this._swap(x0, x1);
+      y1 = [y0, y0 = y1][0]; //this._swap(y0, y1);
+    }
+
+    let dx = x1 - x0;
+    let dy = Math.abs(y1 - y0);
+
+    let err = dx / 2;
+    let ystep = (y0 < y1) ? 1 : -1;
+
+    for (; x0<=x1; x0++) {
+      if (steep) {
+        this.drawPixel(y0, x0, color);
+      } else {
+        this.drawPixel(x0, y0, color);
+      }
+      err -= dy;
+      if (err < 0) {
+        y0 += ystep;
+        err += dx;
+      }
+    }
+  }
+  drawPixel(x, y, color) {
+    if ((x < 0) ||(x >= this.width) || (y < 0) || (y >= this.height)) return;
+
+    this.setAddrWindow(x, y, x+1, y+1);
+    this.writeData([color >> 8, color & 0xFF]);
+  }
+  
+}
+
+if (typeof module === 'object') {
+  module.exports = SainSmart_ST7735;
+}
+
+//----------------------------------------------------------
+
+// some flags for initR() :(
+const INITR_GREENTAB = 0x0;
+const INITR_REDTAB   = 0x1;
+const INITR_BLACKTAB = 0x2;
+
+const ST7735_TFTWIDTH  = 128;
+const ST7735_TFTHEIGHT = 160;
+
+const ST7735_NOP     = 0x00;
+const ST7735_SWRESET = 0x01;
+const ST7735_RDDID   = 0x04;
+const ST7735_RDDST   = 0x09;
+const ST7735_RDDPM   = 0x0A;
+
+const ST7735_SLPIN   = 0x10;
+const ST7735_SLPOUT  = 0x11;
+const ST7735_PTLON   = 0x12;
+const ST7735_NORON   = 0x13;
+
+const ST7735_INVOFF  = 0x20;
+const ST7735_INVON   = 0x21;
+const ST7735_DISPOFF = 0x28;
+const ST7735_DISPON  = 0x29;
+const ST7735_CASET   = 0x2A;
+const ST7735_RASET   = 0x2B;
+const ST7735_RAMWR   = 0x2C;
+const ST7735_RAMRD   = 0x2E;
+
+const ST7735_PTLAR   = 0x30;
+const ST7735_COLMOD  = 0x3A;
+const ST7735_MADCTL  = 0x36;
+
+const ST7735_FRMCTR1 = 0xB1;
+const ST7735_FRMCTR2 = 0xB2;
+const ST7735_FRMCTR3 = 0xB3;
+const ST7735_INVCTR  = 0xB4;
+const ST7735_DISSET5 = 0xB6;
+
+const ST7735_PWCTR1  = 0xC0;
+const ST7735_PWCTR2  = 0xC1;
+const ST7735_PWCTR3  = 0xC2;
+const ST7735_PWCTR4  = 0xC3;
+const ST7735_PWCTR5  = 0xC4;
+const ST7735_VMCTR1  = 0xC5;
+
+const ST7735_RDID1   = 0xDA;
+const ST7735_RDID2   = 0xDB;
+const ST7735_RDID3   = 0xDC;
+const ST7735_RDID4   = 0xDD;
+
+const ST7735_PWCTR6  = 0xFC;
+
+const ST7735_GMCTRP1 = 0xE0;
+const ST7735_GMCTRN1 = 0xE1;
+
+// Color definitions
+const ST7735_BLACK   = 0x0000;
+const ST7735_BLUE    = 0x001F;
+const ST7735_RED     = 0xF800;
+const ST7735_GREEN   = 0x07E0;
+const ST7735_CYAN    = 0x07FF;
+const ST7735_MAGENTA = 0xF81F;
+const ST7735_YELLOW  = 0xFFE0;
+const ST7735_WHITE   = 0xFFFF;
+  
+</script>
+</body>
+</html>
