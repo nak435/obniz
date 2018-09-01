@@ -23,7 +23,7 @@ LCDとobnizのピン接続は以下の通り。写真で示す通り、直付け
 ![](./obnizshot1.jpg)
 
 
-|LCD|obnoz pin#|
+|LCD|obniz pin#|
 |:-:|:--|
 |VCC    |6 (5v) |
 |GND    |5 (gnd) |
