@@ -420,8 +420,13 @@ obniz.onconnect = async function () {
 //  console.log("Loading..." + url);
 
     $.get(url, function(data, status) {
-      let adr = data.results[1].formatted_address;
-      let adr2 = adr.substr(adr.lastIndexOf(" "));
+      let adr2;
+      if (data.results.length > 0) {
+        let adr = data.results[1].formatted_address;
+        adr2 = adr.substr(adr.lastIndexOf(" "));
+      } else {
+        adr2 = data.error_message + " : " + data.status;
+      }
 /*
       console.log("status: " + status);
       console.log(data);
