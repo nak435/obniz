@@ -129,8 +129,8 @@ obniz.onconnect = async function () {
           var e = GYSFDMAXB.nmea2s(p[4]);
           if (neSec(k, K) || neSec(e, E)) {
             K=k; E=e;
-            k = gps.NMEA2DD(p[2]);
-            e = gps.NMEA2DD(p[4]);
+            k = GYSFDMAXB.nmea2dd(p[2]);
+            e = GYSFDMAXB.nmea2dd(p[4]);
             let src="https://www.google.com/maps?output=embed&iwloc=A&q=現在地@" + k + "," + e;
             $("#map").attr("src", src);
             getAddr(k, e);
