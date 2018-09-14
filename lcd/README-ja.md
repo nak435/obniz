@@ -1,13 +1,12 @@
 # SainSmartTFT18LCD
 
 
-Obnizから[サインスマート 1.8インチ TFTカラーディスプレイ](https://www.amazon.co.jp/サインスマート（SainSmart）-カラー-LCD-インタフェース-MicroSD-付き-Arduino/dp/B008HWTVQ2/)に描画するためのライブラリです。なお、このLCDが内蔵するMicroSDへのアクセスはサポートしていません。
+Obnizから[サインスマート 1.8インチ TFTカラーディスプレイ](https://www.amazon.co.jp/サインスマート（SainSmart）-カラー-LCD-インタフェース-MicroSD-付き-Arduino/dp/B008HWTVQ2/)に描画するためのライブラリです。ただし、このLCDが内蔵するMicroSDへのアクセスはサポートしていません。
 
 ![](./image.png)
 
 
-このLCDはSPIインターフェースでアクセスしますが、ObnizではArduinoやRaspberry Piの様な高速の描画はできません。また、LCDからデータを読み出すこともできません。  
-
+このLCDはSPIインターフェースでアクセスしますが、ObnizではArduinoやRaspberry Piの様に高速な描画はできません。また、LCDからデータを読み出すこともできません。  
 
 ## wired(scl, sda, dc, res, cs {, vcc, gnd })
 
@@ -24,10 +23,13 @@ lcd.begin();
 LCDをハードリセットして描画できるようにします。      
 
 
-## 描画API
+# 描画API
 
-このパーツライブラリはLCDに描画するための様々APIを提供します。はじめに各APIに共通する事項から説明します。  
-LCDのサイズは`witdh`と`height`プロパティで得ることができます。
+このパーツライブラリはLCDに描画するための様々なAPIを提供します。はじめに各APIに共通する事項から説明します。  
+
+## `witdh`と`height`プロパティ
+
+LCDのサイズは`witdh`と`height`プロパティから得ることができます。
 
 ```javascript
 // Javascript Example
@@ -38,8 +40,11 @@ console.log(lcd.height); //160
 
 ## color16(r, g, b)
 
-後述する`draw()`と`drawBounds()`は18bitカラーモードでLCDに描画します。それ以外の描画APIは引数`color`に16bitRGB値を指定します。`color16(r, g, b)`関数は、引数に指定した各色8bit値(0〜255)から減色して16bitRGB値を作ります。  
-　16bitRGB値　⇒　赤(r)：8bit値の上位5bit、緑(g)：8bit値の上位6bit、青(b)：8bit値の上位5bit
+後述する`draw()`と`drawBound()`は18bitカラーモードでLCDに描画します。それ以外の描画APIは引数`color`に16bitRGB値を指定します。`color16()`は、引数に指定した各色8bit値(0〜255)から減色して16bitRGB値を生成します。
+```
+16bitRGB値　=　赤(r)：8bit値の上位5bit、緑(g)：8bit値の上位6bit、青(b)：8bit値の上位5bit
+```
+なお、引数`color`には後述する16bitRGB値プリセットカラーを指定することもできます。
 
 ```javascript
 // Javascript Example
@@ -48,25 +53,7 @@ let red = lcd.color16(255, 0, 0); //16bitRGB for red
 lcd.drawRect(0, 0, lcd.width, lcd.height, red);
 ```
 
-## setRotation(dir)
-
-
-LCDの向きを`0`から`3`で指定します。初期化後は`0`(正位)です。
-この後の描画から有効になり、描画済みの内容の向きは変わりません。
-
-![](./rotate60.png)
-
-指定した向きに応じて`witdh`と`height`プロパティも再設定されます。また、描画の原点`{top:0, left:0}`は図の赤点の位置、つまり、向きに応じた左上となります。
-
-```javascript
-// Javascript Example
-:  :
-lcd.setRotation(3); //横長向き
-console.log(lcd.width);  //160
-console.log(lcd.height); //128 
-```
-
-## 共通的な引数の説明
+# 共通的な引数の説明
 
 描画APIに共通する引数を以下に説明します。
 
@@ -74,13 +61,14 @@ console.log(lcd.height); //128
 |:---|:--|
 |x<br>y|描画の起点となる座標を`x, y`で指定します。<br>2点を指定する関数の場合は`x0, y0, x1, y1`、3点を指定する関数の場合は`x0, y0, x1, y1, x2, y2`で指定します。|
 |width<br>height|描画する図形の幅と高さを`width`, `height`で指定します。描画APIによっては`width`のみ、`height`のみ指定する関数もあります。|
-|color|描画する色を16bitRGB値で指定します。|
+|color|描画する色を16bitRGB値で指定します。後述する16bitRGB値プリセットカラーを指定することもできます。|
 |radius|円を描画する場合の半径を指定します。|
 |round|角丸矩形を描画する場合の角の丸みの半径を指定します。|
 |backgroundColor|`dwarChar()`, `drawString()`において、描画する文字の背景色を指定します。`color`と同じ値を指定した場合は、背景を描画しません。つまり、透過モードとなります。|
-|size|`dwarChar()`, `drawString()`において、描画する文字のサイズを指定します。1以上の整数で倍率を表し、`1`：横5ピクセルx縦7ピクセルの文字、`2`：2倍（横10ピクセルx縦14ピクセルの文字）、`3`：3倍、`4`：4倍、・・・。スムージングではなく、縦横単純にピクセルを等倍した文字を描画します。|
+|size|`dwarChar()`, `drawString()`において、描画する文字サイズの倍率を指定します。`1`：横5ピクセルx縦7ピクセルの文字、`2`：2倍（横10ピクセルx縦14ピクセルの文字）、`3`：3倍、`4`：4倍、・・・。スムージングではなく、縦横単純にピクセルを等倍した文字を描画します。|
 |||
 
+# 描画API
 
 ## fillScreen(color)
 
@@ -89,19 +77,19 @@ LCD全体を`color`で塗りつぶします。次の`fillRect(0, 0, lcd.width, l
 
 ## drawRect(x, y, width, height, color)<br>fillRect(x, y, width, height, color)
 
-`drawRect()`は引数`x`, `y`, `width`, `height`で指定した矩形を`color`で描画します。
+`drawRect()`は引数`x`, `y`, `width`, `height`に指定した矩形を`color`で描画します。
 `fillRect()`は塗りつぶします。
 
 
-## drawRdrawRoundRectect(x, y, width, height, round, color)<br>fillRoundRect(x, y, width, height, round, color)
+## drawRoundRect(x, y, width, height, round, color)<br>fillRoundRect(x, y, width, height, round, color)
 
-`drawRoundRect()`は引数`x`, `y`, `width`, `height`, `round`で指定した角丸矩形を`color`で描画します。
+`drawRoundRect()`は引数`x`, `y`, `width`, `height`, `round`に指定した角丸矩形を`color`で描画します。
 `fillRoundRect()`は塗りつぶします。
 
 
 ## drawCircle(x, y, radius, color)<br>fillCircle(x, y, radius, color)
   
-`drawCircle()`は引数`x`, `y`を中心座標点として半径`radius`で指定した円を`color`で描画します。
+`drawCircle()`は引数`{x, y}`を中心として半径`radius`の円を`color`で描画します。
 `fillCircle()`は塗りつぶします。
 
 
@@ -113,13 +101,13 @@ LCD全体を`color`で塗りつぶします。次の`fillRect(0, 0, lcd.width, l
 
 ## drawVLine(x, y, height, color)<br>drawHLine(x, y, width, color)
   
-`drawVLine()`は引数`x`, `y`で指定した座標から高さ`height`の垂直線を`color`で描画します。  
-`drawHLine()`は引数`x`, `y`で指定した座標から幅`width`の水平線を`color`で描画します。これらの関数は次の`drawLine()`より高速に描画します。
+`drawVLine()`は引数`{x, y}`で指定した座標点から高さ`height`の垂直線を`color`で描画します。  
+`drawHLine()`は引数`{x, y}`で指定した座標点から幅`width`の水平線を`color`で描画します。これらの関数は次の`drawLine()`より高速に描画します。
 
 
 ## drawLine(x0, y0, x1, y1, color)
   
-`drawLine()`は引数で指定した2点`{x0, y0}`, `{x1, y1}`を`color`で直線を描画します。
+`drawLine()`は引数で指定した座標2点`{x0, y0}`, `{x1, y1}`を`color`で直線を描画します。
 
 
 ```javascript
@@ -136,17 +124,14 @@ console.log(lcd.height); //128
 ```
 
 
-## drawChar(x, y, ch, color, backgroundColor, size)<br>drawString(x, y, str, color, backgroundColor, size, wrap)
+## drawChar(x, y, char, color, backgroundColor, size)<br>drawString(x, y, string, color, backgroundColor, size, wrap)
   
-`drawChar()`は引数`x`, `y`で指定した座標に引数`ch`で指定ASCII文字を`color`で描画します。文字の背景色は`backgroundColor`で指定します。
+`drawChar()`は引数`{x, y}`で指定した座標点に引数`char`で指定したASCII文字を`color`で描画します。文字の背景色は`backgroundColor`で指定します。
 
 
-`drawString()`は文字列を描画します。1文字づつ1文字分の横幅のピクセル数を`x`に加えながら、`drawChar()`を使って描画します。  
-引数`wrap`が`true`の場合は、`x>width`の場合に、`y`に1文字分の縦幅のピクセル数を加え、`x=0`にして描画します（つまり、改行します）。また、文字列中に改行コード`'\n'`が出現した場合は`wrap`の値によらず改行します。  
+`drawString()`は文字列を描画します。1文字づつ1文字分の横幅ピクセル数を`x`に加えながら、`drawChar()`を使って描画します。  
+引数`wrap`が`true`の場合は、`x`が`width`を超えた場合に、`y`に1文字分の縦幅ピクセル数を加え、`x=0`にして描画します（つまり、改行します）。また、文字列中に改行コード`'\n'`が出現した場合は`wrap`の値によらず改行します。  
 このように`drawString()`内では`x`と`y`を更新しながら文字列を描画して、最後の文字を描画し終わった後の`[x, y]`をリターンします。つまり、戻り値の`x`, `y`を再使用することで、`drawString()`を繰り返し呼ぶことができます。
-
-漢字や他言語などASCII文字以外を描画する場合は、一度、[Canvas](https://developer.mozilla.org/en-US/docs/Web/API/Canvas_API)に描画してから後述する`draw()`や`drawBounds()`を使用してLCDに転送する必要があります。
-
 
 ```javascript
 // Javascript Example
@@ -160,183 +145,217 @@ var x = 10, y = 10;
 ```
 
 
-
-## drawBound(context, x0, y0, width, height, x1, y1)<br>draw(context)
-
-`drawBounds()`は`canvas.context(2D)`に描画した内容をLCDに転送します。転送元/先の関係を下図に示します。
-
-![転送元/先の関係](./drawBounds.png)
-
-転送元の`canvas.context`を引数`context`に指定し、範囲を引数`x0`, `y0`, `width`, `height`で指定し、転送先のLCDの座標を引数`x1`, `y1`で指定します。`drawBound()`は`context`の内容を18bitRGBに減色したカラーで描画します。  
-`draw()`は`drawBound(context, 0, 0, lcd.width, lcd.height, 0, 0)`と等価です。  
-ネットワーク環境にもよりますが`draw()`で約100ミリ秒を要します。よって、動画再生の様な用途には不向きです。
+文字フォントを指定したり漢字や他言語などASCII文字以外を描画する場合は、一度、[Canvas](https://developer.mozilla.org/en-US/docs/Web/API/Canvas_API)に描画してから後述する`draw()`や`drawBound()`を使用してLCDに転送してください。  
 
 
-## その他のAPI
+## drawContextBound(context, x0, y0, width, height, x1, y1)<br>drawContext(context)
 
+`drawContextBound()`と`drawContext()`は`canvas.context(2D)`に描画した内容をLCDに転送します。転送元/先の関係を下図に示します。
+
+![転送元/先の関係](./drawBound.png)
+
+転送元の`canvas.context`を引数`context`に、転送範囲を引数`x0`, `y0`, `width`, `height`に指定し、転送先のLCDの座標を引数`x1`, `y1`に指定します。`drawContextBound()`と`drawContext()`は`context`の内容を18bitRGB値に減色したカラーで描画します。  
+`drawContext()`は`drawContextBound(context, 0, 0, lcd.width, lcd.height, 0, 0)`と等価です。  
+ネットワーク環境にもよりますが`drawContext()`で約100ミリ秒を要します。よって、動画再生の様な用途には不向きです。なお、描画性能はネットワーク環境にも依存します。
+
+
+# その他のAPI
+
+## setRotation(dir)
+
+LCDの向きを`0`から`3`で指定します。初期化後は `0` (正位)です。
+この設定後の描画から有効となり、描画済みの内容の向きは変わりません。
+
+![](./rotate60.png)
+
+指定した向きに応じて`witdh`と`height`プロパティも再設定されます。また、描画の原点`{top:0, left:0}`は図の赤点の位置、つまり、向きに応じた左上となります。
+
+```javascript
+// Javascript Example
+:  :
+lcd.fillScreen(0); //clear screen of black
+for (let n=0; n<4; n++) {
+  lcd.setRotation(n);
+  lcd.dwarChar(0, 0, n+"", 0xFFF, 0xFFF, 2);
+  lcd.drawPixel(0, 0, 0xF80); // plot origin point to red
+}
+```
+
+## setDisplayOn()<br>setDisplayOff()<br>setDisplay(on)
 
 LCD表示をON/OFFを制御します。  
-`displayOn()`：LCD表示をONします。
-`displayOff()`：LCD表示をOFFします。  
-`display(on)`：引数`on`が`true`の場合、LCD表示をONします。`false`の場合、LCD表示をOFFします。
+`setDisplayOn()`：LCD表示をONします。   
+`setDisplayOff()`：LCD表示をOFFします。  
+`setDisplay(on)`：引数`on`が`true`の場合、LCD表示をONします。`false`の場合、LCD表示をOFFします。
+
+## setInversionOn()<br>setInversionOff()<br>setInversion(inversion)
+
+LCD表示の色反転を制御します。  
+`setInversionOn()`：LCD表示を色反転します。   
+`setInversionOff()`：LCD表示の色反転を戻します。  
+`setInversion(inversion)`：引数`inversion`が`true`の場合、LCD表示を色反転します。`false`の場合、LCD表示の色反転を戻します。
 
 
 ## rawBound(x, y, width, height, [pixel0, pixel1, pixel2, ...])<br>raw([pixel0, pixel1, pixel2, ...])
 
-`rawBound()`は引数`x`, `y`, `width`, `height`で指定したLCDの範囲に`pixel0`, `pixel1`, `pixel2`, `...`を順番に描画します。各ピクセルは32bitRGBカラー値で指定しますが、実際の描画は18bitカラー値に減色されます。
+`rawBound()`は引数`x`, `y`, `width`, `height`に指定したLCDの範囲に`pixel0`, `pixel1`, `pixel2`, `...`の順に描画します。各ピクセルは32bitRGBカラー値で指定しますが、実際の描画は18bitカラー値に減色されます。  
 `raw()`は`rawBound(0, 0, lcd.width, lcd.height, [pixel0, pixel1, pixel2, ...])`と等価でLCD全体を描画します。  
-この関数は`drawPixel()`の繰り返しより遥かに高速で描画できますが、`raw()`で約100ミリ秒を要します。よって、動画再生の様な用途には不向きです。なお、描画性能はネットワーク環境にも依存します。
+これらの関数は`drawPixel()`の繰り返しより遥かに高速で描画できますが、`raw()`で約100ミリ秒を要します。よって、動画再生の様な用途には不向きです。なお、描画性能はネットワーク環境にも依存します。
 
-`raw()`1回当たりのLCDへの転送データ量 ≒ 128 x 160 x 3byte = 60Kbyte　（18bitカラー値の場合）
+`raw()`1回当たりのLCDへの転送データ量：60Kbyte ≒ 128 x 160 x 3byte（18bitカラー値）
 
 
-| color name  | red | green | blue | 
-|:-----|:-----|:-----|:-----|
-| AliceBlue  | 0x1e | 0x3e | 0x1f | 
-| AntiqueWhite  | 0x1f | 0x3a | 0x1a | 
-| Aqua  | 0x0 | 0x3f | 0x1f | 
-| Aquamarine  | 0xf | 0x3f | 0x1a | 
-| Azure  | 0x1e | 0x3f | 0x1f | 
-| Beige  | 0x1e | 0x3d | 0x1b | 
-| Bisque  | 0x1f | 0x39 | 0x18 | 
-| Black  | 0x0 | 0x0 | 0x0 | 
-| BlanchedAlmond  | 0x1f | 0x3a | 0x19 | 
-| Blue  | 0x0 | 0x0 | 0x1f | 
-| BlueViolet  | 0x11 | 0xa | 0x1c | 
-| Brown  | 0x14 | 0xa | 0x5 | 
-| BurlyWood  | 0x1b | 0x2e | 0x10 | 
-| CadetBlue  | 0xb | 0x27 | 0x14 | 
-| Chartreuse  | 0xf | 0x3f | 0x0 | 
-| Chocolate  | 0x1a | 0x1a | 0x3 | 
-| Coral  | 0x1f | 0x1f | 0xa | 
-| CornflowerBlue  | 0xc | 0x25 | 0x1d | 
-| Cornsilk  | 0x1f | 0x3e | 0x1b | 
-| Crimson  | 0x1b | 0x5 | 0x7 | 
-| Cyan  | 0x0 | 0x3f | 0x1f | 
-| DarkBlue  | 0x0 | 0x0 | 0x11 | 
-| DarkCyan  | 0x0 | 0x22 | 0x11 | 
-| DarkGoldenRod  | 0x17 | 0x21 | 0x1 | 
-| DarkGray  | 0x15 | 0x2a | 0x15 | 
-| DarkGrey  | 0x15 | 0x2a | 0x15 | 
-| DarkGreen  | 0x0 | 0x19 | 0x0 | 
-| DarkKhaki  | 0x17 | 0x2d | 0xd | 
-| DarkMagenta  | 0x11 | 0x0 | 0x11 | 
-| DarkOliveGreen  | 0xa | 0x1a | 0x5 | 
-| DarkOrange  | 0x1f | 0x23 | 0x0 | 
-| DarkOrchid  | 0x13 | 0xc | 0x19 | 
-| DarkRed  | 0x11 | 0x0 | 0x0 | 
-| DarkSalmon  | 0x1d | 0x25 | 0xf | 
-| DarkSeaGreen  | 0x11 | 0x2f | 0x11 | 
-| DarkSlateBlue  | 0x9 | 0xf | 0x11 | 
-| DarkSlateGray  | 0x5 | 0x13 | 0x9 | 
-| DarkSlateGrey  | 0x5 | 0x13 | 0x9 | 
-| DarkTurquoise  | 0x0 | 0x33 | 0x1a | 
-| DarkViolet  | 0x12 | 0x0 | 0x1a | 
-| DeepPink  | 0x1f | 0x5 | 0x12 | 
-| DeepSkyBlue  | 0x0 | 0x2f | 0x1f | 
-| DimGray  | 0xd | 0x1a | 0xd | 
-| DimGrey  | 0xd | 0x1a | 0xd | 
-| DodgerBlue  | 0x3 | 0x24 | 0x1f | 
-| FireBrick  | 0x16 | 0x8 | 0x4 | 
-| FloralWhite  | 0x1f | 0x3e | 0x1e | 
-| ForestGreen  | 0x4 | 0x22 | 0x4 | 
-| Fuchsia  | 0x1f | 0x0 | 0x1f | 
-| Gainsboro  | 0x1b | 0x37 | 0x1b | 
-| GhostWhite  | 0x1f | 0x3e | 0x1f | 
-| Gold  | 0x1f | 0x35 | 0x0 | 
-| GoldenRod  | 0x1b | 0x29 | 0x4 | 
-| Gray  | 0x10 | 0x20 | 0x10 | 
-| Grey  | 0x10 | 0x20 | 0x10 | 
-| Green  | 0x0 | 0x20 | 0x0 | 
-| GreenYellow  | 0x15 | 0x3f | 0x5 | 
-| HoneyDew  | 0x1e | 0x3f | 0x1e | 
-| HotPink  | 0x1f | 0x1a | 0x16 | 
-| IndianRed  | 0x19 | 0x17 | 0xb | 
-| Indigo  | 0x9 | 0x0 | 0x10 | 
-| Ivory  | 0x1f | 0x3f | 0x1e | 
-| Khaki  | 0x1e | 0x39 | 0x11 | 
-| Lavender  | 0x1c | 0x39 | 0x1f | 
-| LavenderBlush  | 0x1f | 0x3c | 0x1e | 
-| LawnGreen  | 0xf | 0x3f | 0x0 | 
-| LemonChiffon  | 0x1f | 0x3e | 0x19 | 
-| LightBlue  | 0x15 | 0x36 | 0x1c | 
-| LightCoral  | 0x1e | 0x20 | 0x10 | 
-| LightCyan  | 0x1c | 0x3f | 0x1f | 
-| LightGoldenRodYellow  | 0x1f | 0x3e | 0x1a | 
-| LightGray  | 0x1a | 0x34 | 0x1a | 
-| LightGrey  | 0x1a | 0x34 | 0x1a | 
-| LightGreen  | 0x12 | 0x3b | 0x12 | 
-| LightPink  | 0x1f | 0x2d | 0x18 | 
-| LightSalmon  | 0x1f | 0x28 | 0xf | 
-| LightSeaGreen  | 0x4 | 0x2c | 0x15 | 
-| LightSkyBlue  | 0x10 | 0x33 | 0x1f | 
-| LightSlateGray  | 0xe | 0x22 | 0x13 | 
-| LightSlateGrey  | 0xe | 0x22 | 0x13 | 
-| LightSteelBlue  | 0x16 | 0x31 | 0x1b | 
-| LightYellow  | 0x1f | 0x3f | 0x1c | 
-| Lime  | 0x0 | 0x3f | 0x0 | 
-| LimeGreen  | 0x6 | 0x33 | 0x6 | 
-| Linen  | 0x1f | 0x3c | 0x1c | 
-| Magenta  | 0x1f | 0x0 | 0x1f | 
-| Maroon  | 0x10 | 0x0 | 0x0 | 
-| MediumAquaMarine  | 0xc | 0x33 | 0x15 | 
-| MediumBlue  | 0x0 | 0x0 | 0x19 | 
-| MediumOrchid  | 0x17 | 0x15 | 0x1a | 
-| MediumPurple  | 0x12 | 0x1c | 0x1b | 
-| MediumSeaGreen  | 0x7 | 0x2c | 0xe | 
-| MediumSlateBlue  | 0xf | 0x1a | 0x1d | 
-| MediumSpringGreen  | 0x0 | 0x3e | 0x13 | 
-| MediumTurquoise  | 0x9 | 0x34 | 0x19 | 
-| MediumVioletRed  | 0x18 | 0x5 | 0x10 | 
-| MidnightBlue  | 0x3 | 0x6 | 0xe | 
-| MintCream  | 0x1e | 0x3f | 0x1f | 
-| MistyRose  | 0x1f | 0x39 | 0x1c | 
-| Moccasin  | 0x1f | 0x39 | 0x16 | 
-| NavajoWhite  | 0x1f | 0x37 | 0x15 | 
-| Navy  | 0x0 | 0x0 | 0x10 | 
-| OldLace  | 0x1f | 0x3d | 0x1c | 
-| Olive  | 0x10 | 0x20 | 0x0 | 
-| OliveDrab  | 0xd | 0x23 | 0x4 | 
-| Orange  | 0x1f | 0x29 | 0x0 | 
-| OrangeRed  | 0x1f | 0x11 | 0x0 | 
-| Orchid  | 0x1b | 0x1c | 0x1a | 
-| PaleGoldenRod  | 0x1d | 0x3a | 0x15 | 
-| PaleGreen  | 0x13 | 0x3e | 0x13 | 
-| PaleTurquoise  | 0x15 | 0x3b | 0x1d | 
-| PaleVioletRed  | 0x1b | 0x1c | 0x12 | 
-| PapayaWhip  | 0x1f | 0x3b | 0x1a | 
-| PeachPuff  | 0x1f | 0x36 | 0x17 | 
-| Peru  | 0x19 | 0x21 | 0x7 | 
-| Pink  | 0x1f | 0x30 | 0x19 | 
-| Plum  | 0x1b | 0x28 | 0x1b | 
-| PowderBlue  | 0x16 | 0x38 | 0x1c | 
-| Purple  | 0x10 | 0x0 | 0x10 | 
-| RebeccaPurple  | 0xc | 0xc | 0x13 | 
-| Red  | 0x1f | 0x0 | 0x0 | 
-| RosyBrown  | 0x17 | 0x23 | 0x11 | 
-| RoyalBlue  | 0x8 | 0x1a | 0x1c | 
-| SaddleBrown  | 0x11 | 0x11 | 0x2 | 
-| Salmon  | 0x1f | 0x20 | 0xe | 
-| SandyBrown  | 0x1e | 0x29 | 0xc | 
-| SeaGreen  | 0x5 | 0x22 | 0xa | 
-| SeaShell  | 0x1f | 0x3d | 0x1d | 
-| Sienna  | 0x14 | 0x14 | 0x5 | 
-| Silver  | 0x18 | 0x30 | 0x18 | 
-| SkyBlue  | 0x10 | 0x33 | 0x1d | 
-| SlateBlue  | 0xd | 0x16 | 0x19 | 
-| SlateGray  | 0xe | 0x20 | 0x12 | 
-| SlateGrey  | 0xe | 0x20 | 0x12 | 
-| Snow  | 0x1f | 0x3e | 0x1f | 
-| SpringGreen  | 0x0 | 0x3f | 0xf | 
-| SteelBlue  | 0x8 | 0x20 | 0x16 | 
-| Tan  | 0x1a | 0x2d | 0x11 | 
-| Teal  | 0x0 | 0x20 | 0x10 | 
-| Thistle  | 0x1b | 0x2f | 0x1b | 
-| Tomato  | 0x1f | 0x18 | 0x8 | 
-| Turquoise  | 0x8 | 0x38 | 0x1a | 
-| Violet  | 0x1d | 0x20 | 0x1d | 
-| Wheat  | 0x1e | 0x37 | 0x16 | 
-| White  | 0x1f | 0x3f | 0x1f | 
-| WhiteSmoke  | 0x1e | 0x3d | 0x1e | 
-| Yellow  | 0x1f | 0x3f | 0x0 | 
-| YellowGreen  | 0x13 | 0x33 | 0x6 | 
+## プリセットカラー（16bitRGB値）
+
+このライブラリで提供する16bitRGB値プリセットカラーを一覧で示します。各描画APIの`color`引数に使用します。なお、32bitRGB値から減色しているため、名前は異なるが値(色)が同じ場合があります。
+
+```javascript
+// Javascript Example
+:  :                 引数colorに「xxx.color.プリセット名」で指定します。
+lcd.drawLine(0, 0, lcd.width, lcd.height, lcd.color.AliceBlue);
+:  :
+```
+
+| preset name  | red | green | blue | sample | 
+|:-----|:-----|:-----|:-----|:-----:|
+|AliceBlue|0x1e|0x3e|0x1f|<font color="AliceBlue">■</font>|
+|AntiqueWhite|0x1f|0x3a|0x1a|<font color="AntiqueWhite">■</font>|
+|Aqua|0x00|0x3f|0x1f|<font color="Aqua">■</font>|
+|Aquamarine|0x0f|0x3f|0x1a|<font color="Aquamarine">■</font>|
+|Azure|0x1e|0x3f|0x1f|<font color="Azure">■</font>|
+|Beige|0x1e|0x3d|0x1b|<font color="Beige">■</font>|
+|Bisque|0x1f|0x39|0x18|<font color="Bisque">■</font>|
+|Black|0x00|0x00|0x00|<font color="Black">■</font>|
+|BlanchedAlmond|0x1f|0x3a|0x19|<font color="BlanchedAlmond">■</font>|
+|Blue|0x00|0x00|0x1f|<font color="Blue">■</font>|
+|BlueViolet|0x11|0x0a|0x1c|<font color="BlueViolet">■</font>|
+|Brown|0x14|0x0a|0x05|<font color="Brown">■</font>|
+|BurlyWood|0x1b|0x2e|0x10|<font color="BurlyWood">■</font>|
+|CadetBlue|0x0b|0x27|0x14|<font color="CadetBlue">■</font>|
+|Chartreuse|0x0f|0x3f|0x00|<font color="Chartreuse">■</font>|
+|Chocolate|0x1a|0x1a|0x03|<font color="Chocolate">■</font>|
+|Coral|0x1f|0x1f|0x0a|<font color="Coral">■</font>|
+|CornflowerBlue|0x0c|0x25|0x1d|<font color="CornflowerBlue">■</font>|
+|Cornsilk|0x1f|0x3e|0x1b|<font color="Cornsilk">■</font>|
+|Crimson|0x1b|0x05|0x07|<font color="Crimson">■</font>|
+|Cyan|0x00|0x3f|0x1f|<font color="Cyan">■</font>|
+|DarkBlue|0x00|0x00|0x11|<font color="DarkBlue">■</font>|
+|DarkCyan|0x00|0x22|0x11|<font color="DarkCyan">■</font>|
+|DarkGoldenRod|0x17|0x21|0x01|<font color="DarkGoldenRod">■</font>|
+|DarkGray|0x15|0x2a|0x15|<font color="DarkGray">■</font>|
+|DarkGreen|0x00|0x19|0x00|<font color="DarkGreen">■</font>|
+|DarkKhaki|0x17|0x2d|0x0d|<font color="DarkKhaki">■</font>|
+|DarkMagenta|0x11|0x00|0x11|<font color="DarkMagenta">■</font>|
+|DarkOliveGreen|0x0a|0x1a|0x05|<font color="DarkOliveGreen">■</font>|
+|DarkOrange|0x1f|0x23|0x00|<font color="DarkOrange">■</font>|
+|DarkOrchid|0x13|0x0c|0x19|<font color="DarkOrchid">■</font>|
+|DarkRed|0x11|0x00|0x00|<font color="DarkRed">■</font>|
+|DarkSalmon|0x1d|0x25|0x0f|<font color="DarkSalmon">■</font>|
+|DarkSeaGreen|0x11|0x2f|0x11|<font color="DarkSeaGreen">■</font>|
+|DarkSlateBlue|0x09|0x0f|0x11|<font color="DarkSlateBlue">■</font>|
+|DarkSlateGray|0x05|0x13|0x09|<font color="DarkSlateGray">■</font>|
+|DarkTurquoise|0x00|0x33|0x1a|<font color="DarkTurquoise">■</font>|
+|DarkViolet|0x12|0x00|0x1a|<font color="DarkViolet">■</font>|
+|DeepPink|0x1f|0x05|0x12|<font color="DeepPink">■</font>|
+|DeepSkyBlue|0x00|0x2f|0x1f|<font color="DeepSkyBlue">■</font>|
+|DimGray|0x0d|0x1a|0x0d|<font color="DimGray">■</font>|
+|DodgerBlue|0x03|0x24|0x1f|<font color="DodgerBlue">■</font>|
+|FireBrick|0x16|0x08|0x04|<font color="FireBrick">■</font>|
+|FloralWhite|0x1f|0x3e|0x1e|<font color="FloralWhite">■</font>|
+|ForestGreen|0x04|0x22|0x04|<font color="ForestGreen">■</font>|
+|Fuchsia|0x1f|0x00|0x1f|<font color="Fuchsia">■</font>|
+|Gainsboro|0x1b|0x37|0x1b|<font color="Gainsboro">■</font>|
+|GhostWhite|0x1f|0x3e|0x1f|<font color="GhostWhite">■</font>|
+|Gold|0x1f|0x35|0x00|<font color="Gold">■</font>|
+|GoldenRod|0x1b|0x29|0x04|<font color="GoldenRod">■</font>|
+|Gray|0x10|0x20|0x10|<font color="Gray">■</font>|
+|Green|0x00|0x20|0x00|<font color="Green">■</font>|
+|GreenYellow|0x15|0x3f|0x05|<font color="GreenYellow">■</font>|
+|HoneyDew|0x1e|0x3f|0x1e|<font color="HoneyDew">■</font>|
+|HotPink|0x1f|0x1a|0x16|<font color="HotPink">■</font>|
+|IndianRed|0x19|0x17|0x0b|<font color="IndianRed">■</font>|
+|Indigo|0x09|0x00|0x10|<font color="Indigo">■</font>|
+|Ivory|0x1f|0x3f|0x1e|<font color="Ivory">■</font>|
+|Khaki|0x1e|0x39|0x11|<font color="Khaki">■</font>|
+|Lavender|0x1c|0x39|0x1f|<font color="Lavender">■</font>|
+|LavenderBlush|0x1f|0x3c|0x1e|<font color="LavenderBlush">■</font>|
+|LawnGreen|0x0f|0x3f|0x00|<font color="LawnGreen">■</font>|
+|LemonChiffon|0x1f|0x3e|0x19|<font color="LemonChiffon">■</font>|
+|LightBlue|0x15|0x36|0x1c|<font color="LightBlue">■</font>|
+|LightCoral|0x1e|0x20|0x10|<font color="LightCoral">■</font>|
+|LightCyan|0x1c|0x3f|0x1f|<font color="LightCyan">■</font>|
+|LightGoldenRodYellow|0x1f|0x3e|0x1a|<font color="LightGoldenRodYellow">■</font>|
+|LightGray|0x1a|0x34|0x1a|<font color="LightGray">■</font>|
+|LightGreen|0x12|0x3b|0x12|<font color="LightGreen">■</font>|
+|LightPink|0x1f|0x2d|0x18|<font color="LightPink">■</font>|
+|LightSalmon|0x1f|0x28|0x0f|<font color="LightSalmon">■</font>|
+|LightSeaGreen|0x04|0x2c|0x15|<font color="LightSeaGreen">■</font>|
+|LightSkyBlue|0x10|0x33|0x1f|<font color="LightSkyBlue">■</font>|
+|LightSlateGray|0x0e|0x22|0x13|<font color="LightSlateGray">■</font>|
+|LightSteelBlue|0x16|0x31|0x1b|<font color="LightSteelBlue">■</font>|
+|LightYellow|0x1f|0x3f|0x1c|<font color="LightYellow">■</font>|
+|Lime|0x00|0x3f|0x00|<font color="Lime">■</font>|
+|LimeGreen|0x06|0x33|0x06|<font color="LimeGreen">■</font>|
+|Linen|0x1f|0x3c|0x1c|<font color="Linen">■</font>|
+|Magenta|0x1f|0x00|0x1f|<font color="Magenta">■</font>|
+|Maroon|0x10|0x00|0x00|<font color="Maroon">■</font>|
+|MediumAquaMarine|0x0c|0x33|0x15|<font color="MediumAquaMarine">■</font>|
+|MediumBlue|0x00|0x00|0x19|<font color="MediumBlue">■</font>|
+|MediumOrchid|0x17|0x15|0x1a|<font color="MediumOrchid">■</font>|
+|MediumPurple|0x12|0x1c|0x1b|<font color="MediumPurple">■</font>|
+|MediumSeaGreen|0x07|0x2c|0x0e|<font color="MediumSeaGreen">■</font>|
+|MediumSlateBlue|0x0f|0x1a|0x1d|<font color="MediumSlateBlue">■</font>|
+|MediumSpringGreen|0x00|0x3e|0x13|<font color="MediumSpringGreen">■</font>|
+|MediumTurquoise|0x09|0x34|0x19|<font color="MediumTurquoise">■</font>|
+|MediumVioletRed|0x18|0x05|0x10|<font color="MediumVioletRed">■</font>|
+|MidnightBlue|0x03|0x06|0x0e|<font color="MidnightBlue">■</font>|
+|MintCream|0x1e|0x3f|0x1f|<font color="MintCream">■</font>|
+|MistyRose|0x1f|0x39|0x1c|<font color="MistyRose">■</font>|
+|Moccasin|0x1f|0x39|0x16|<font color="Moccasin">■</font>|
+|NavajoWhite|0x1f|0x37|0x15|<font color="NavajoWhite">■</font>|
+|Navy|0x00|0x00|0x10|<font color="Navy">■</font>|
+|OldLace|0x1f|0x3d|0x1c|<font color="OldLace">■</font>|
+|Olive|0x10|0x20|0x00|<font color="Olive">■</font>|
+|OliveDrab|0x0d|0x23|0x04|<font color="OliveDrab">■</font>|
+|Orange|0x1f|0x29|0x00|<font color="Orange">■</font>|
+|OrangeRed|0x1f|0x11|0x00|<font color="OrangeRed">■</font>|
+|Orchid|0x1b|0x1c|0x1a|<font color="Orchid">■</font>|
+|PaleGoldenRod|0x1d|0x3a|0x15|<font color="PaleGoldenRod">■</font>|
+|PaleGreen|0x13|0x3e|0x13|<font color="PaleGreen">■</font>|
+|PaleTurquoise|0x15|0x3b|0x1d|<font color="PaleTurquoise">■</font>|
+|PaleVioletRed|0x1b|0x1c|0x12|<font color="PaleVioletRed">■</font>|
+|PapayaWhip|0x1f|0x3b|0x1a|<font color="PapayaWhip">■</font>|
+|PeachPuff|0x1f|0x36|0x17|<font color="PeachPuff">■</font>|
+|Peru|0x19|0x21|0x07|<font color="Peru">■</font>|
+|Pink|0x1f|0x30|0x19|<font color="Pink">■</font>|
+|Plum|0x1b|0x28|0x1b|<font color="Plum">■</font>|
+|PowderBlue|0x16|0x38|0x1c|<font color="PowderBlue">■</font>|
+|Purple|0x10|0x00|0x10|<font color="Purple">■</font>|
+|RebeccaPurple|0x0c|0x0c|0x13|<font color="RebeccaPurple">■</font>|
+|Red|0x1f|0x00|0x00|<font color="Red">■</font>|
+|RosyBrown|0x17|0x23|0x11|<font color="RosyBrown">■</font>|
+|RoyalBlue|0x08|0x1a|0x1c|<font color="RoyalBlue">■</font>|
+|SaddleBrown|0x11|0x11|0x02|<font color="SaddleBrown">■</font>|
+|Salmon|0x1f|0x20|0x0e|<font color="Salmon">■</font>|
+|SandyBrown|0x1e|0x29|0x0c|<font color="SandyBrown">■</font>|
+|SeaGreen|0x05|0x22|0x0a|<font color="SeaGreen">■</font>|
+|SeaShell|0x1f|0x3d|0x1d|<font color="SeaShell">■</font>|
+|Sienna|0x14|0x14|0x05|<font color="Sienna">■</font>|
+|Silver|0x18|0x30|0x18|<font color="Silver">■</font>|
+|SkyBlue|0x10|0x33|0x1d|<font color="SkyBlue">■</font>|
+|SlateBlue|0x0d|0x16|0x19|<font color="SlateBlue">■</font>|
+|SlateGray|0x0e|0x20|0x12|<font color="SlateGray">■</font>|
+|Snow|0x1f|0x3e|0x1f|<font color="Snow">■</font>|
+|SpringGreen|0x00|0x3f|0x0f|<font color="SpringGreen">■</font>|
+|SteelBlue|0x08|0x20|0x16|<font color="SteelBlue">■</font>|
+|Tan|0x1a|0x2d|0x11|<font color="Tan">■</font>|
+|Teal|0x00|0x20|0x10|<font color="Teal">■</font>|
+|Thistle|0x1b|0x2f|0x1b|<font color="Thistle">■</font>|
+|Tomato|0x1f|0x18|0x08|<font color="Tomato">■</font>|
+|Turquoise|0x08|0x38|0x1a|<font color="Turquoise">■</font>|
+|Violet|0x1d|0x20|0x1d|<font color="Violet">■</font>|
+|Wheat|0x1e|0x37|0x16|<font color="Wheat">■</font>|
+|White|0x1f|0x3f|0x1f|<font color="White">■</font>|
+|WhiteSmoke|0x1e|0x3d|0x1e|<font color="WhiteSmoke">■</font>|
+|Yellow|0x1f|0x3f|0x00|<font color="Yellow">■</font>|
+|YellowGreen|0x13|0x33|0x06|<font color="YellowGreen">■</font>|
