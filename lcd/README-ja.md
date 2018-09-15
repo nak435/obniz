@@ -161,7 +161,7 @@ var x = 7, y = 32;
 ```
 
 
-文字フォントを指定したり漢字や他言語などASCII文字以外を描画する場合は、一度、[Canvas](https://developer.mozilla.org/en-US/docs/Web/API/Canvas_API)に描画してから後述する`draw()`や`drawBound()`を使用してLCDに転送してください。  
+文字フォントを指定したり漢字や他言語などASCII文字以外を描画する場合は、一旦[Canvas](https://developer.mozilla.org/en-US/docs/Web/API/Canvas_API)に描画してから次の`drawContextBound()`や`drawContext()`を使用してLCDに転送してください。  
 
 
 ## drawContextBound(context, x0, y0, width, height, x1, y1)<br>drawContext(context)
