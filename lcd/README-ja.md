@@ -1,12 +1,12 @@
 # SainSmartTFT18LCD
 
 
-Obnizから[サインスマート 1.8インチ TFTカラーディスプレイ](https://www.amazon.co.jp/サインスマート（SainSmart）-カラー-LCD-インタフェース-MicroSD-付き-Arduino/dp/B008HWTVQ2/)に描画するためのライブラリです。ただし、このLCDが内蔵するMicroSDへのアクセスはサポートしていません。
+Obnizから[サインスマート 1.8インチ TFTカラーディスプレイ](https://www.amazon.co.jp/サインスマート（SainSmart）-カラー-LCD-インタフェース-MicroSD-付き-Arduino/dp/B008HWTVQ2/)に描画するためのライブラリです。ただし、このLCDに内蔵するMicroSDへのアクセスはサポートしていません。
 
 ![](./image.png)
 
 
-このLCDはSPIインターフェースでアクセスしますが、ObnizではArduinoやRaspberry Piの様に高速な描画はできません。また、LCDからデータを読み出すこともできません。  
+このLCDはSPIインターフェースでアクセスしますが、ObnizではArduinoやRaspberry Piの様に高速に描画することはできません。また、LCDからデータを読み出すこともできません。  
 
 ## wired(scl, sda, dc, res, cs {, vcc, gnd })
 
@@ -14,13 +14,8 @@ scl, sda, dc, res, cs, vcc, gndをobnizに接続し、接続したioをプログ
 
 ```javascript
 // Javascript Example
-lcd = obniz.wired("SainSmartTFT18LCD", { scl:4, sda:3, dc:2, res:1, cs:0, vcc:6, gnd:5});
-lcd.begin();
+lcd = obniz.wired('SainSmartTFT18LCD', { scl:4, sda:3, dc:2, res:1, cs:0, vcc:6, gnd:5});
 ```
-
-## begin()
-
-LCDをハードリセットして描画できるようにします。      
 
 
 # 描画API
@@ -33,18 +28,20 @@ LCDのサイズは`witdh`と`height`プロパティから得ることができ�
 
 ```javascript
 // Javascript Example
-lcd = obniz.wired("SainSmartTFT18LCD", { scl:4, sda:3, dc:2, res:1, cs:0, vcc:6, gnd:5});
+lcd = obniz.wired('SainSmartTFT18LCD', { scl:4, sda:3, dc:2, res:1, cs:0, vcc:6, gnd:5});
 console.log(lcd.width);  //128
 console.log(lcd.height); //160 
 ```
 
 ## color16(r, g, b)
 
-後述する`draw()`と`drawBound()`は18bitカラーモードでLCDに描画します。それ以外の描画APIは引数`color`に16bitRGB値を指定します。`color16()`は、引数に指定した各色8bit値(0〜255)から減色して16bitRGB値を生成します。
+描画APIは引数`color`に16bitRGB値を指定します。`color16()`は、引数に指定した各色8bit値(0〜255)(つまり24bitRGB値)から減色して16bitRGB値を生成します。
 ```
 16bitRGB値　=　赤(r)：8bit値の上位5bit、緑(g)：8bit値の上位6bit、青(b)：8bit値の上位5bit
 ```
-なお、引数`color`には後述する16bitRGB値プリセットカラーを指定することもできます。
+また、引数`color`には後述する16bitRGB値プリセットカラーを指定することもできます。   
+なお、後述する`raw()`と`rawBound()`で指定する`pixel`データは24bitRGB値を指定しますが、実際の描画は18bitRGB値に減色してLCDに描画します。
+
 
 ```javascript
 // Javascript Example
@@ -113,35 +110,53 @@ LCD全体を`color`で塗りつぶします。次の`fillRect(0, 0, lcd.width, l
 ```javascript
 // Javascript Example
 :  :
-lcd.setRotation(3); //横長向き
-console.log(lcd.width);  //160
-console.log(lcd.height); //128 
-
-
-
-
-
+const BLACK   = 0x0000;
+const BLUE    = 0x001F;
+const RED     = 0xF800;
+const GREEN   = 0x07E0;
+const CYAN    = 0x07FF;
+const MAGENTA = 0xF81F;
+const YELLOW  = 0xFFE0;
+const WHITE   = 0xFFFF;
+lcd.fillScreen(BLACK);
+lcd.drawRoundRect(0, 0, lcd.width, lcd.height, 8, RED);
+lcd.fillRect(10, 10, lcd.width - 20, lcd.height - 20, MAGENTA);
+await obniz.wait(1000);
+lcd.drawRect(14, 14, lcd.width - 28, lcd.height - 28, GREEN);
+lcd.fillRoundRect(20, 20, lcd.width - 40, lcd.height - 40, 4, CYAN);
+await obniz.wait(1000);
+lcd.drawCircle(0, 0, 100, BLACK);
+lcd.fillCircle(64, 80, 40, YELLOW);
+lcd.drawCircle(64, 80, 40, RED);
+await obniz.wait(1000);
+lcd.drawTriangle(64, 24, 24, lcd.height - 24, lcd.width - 24, lcd.height - 24, BLACK);
+lcd.fillTriangle(64, lcd.height - 48, 24, 48, lcd.width - 24, 48, GREEN);
+await obniz.wait(1000);
+lcd.drawVLine(64, 10, lcd.height - 20, RED);
+lcd.drawHLine(10, 80, lcd.width - 20, BLUE);
+lcd.drawLine(10, 10, lcd.width - 10, lcd.height - 10, BLACK);
 ```
 
 
-## drawChar(x, y, char, color, backgroundColor, size)<br>drawString(x, y, string, color, backgroundColor, size, wrap)
+## drawChar(x, y, char, color, backgroundColor {, size})<br>drawString(x, y, string, color, backgroundColor {, size {, wrap}})
   
-`drawChar()`は引数`{x, y}`で指定した座標点に引数`char`で指定したASCII文字を`color`で描画します。文字の背景色は`backgroundColor`で指定します。
+`drawChar()`は引数`{x, y}`で指定した座標点に引数`char`で指定したASCII文字を`color`で描画します。文字の背景色は`backgroundColor`で指定します。文字サイズを引数`size`で指定します。`size`を省略すると`1`と解釈します。
 
-
-`drawString()`は文字列を描画します。1文字づつ1文字分の横幅ピクセル数を`x`に加えながら、`drawChar()`を使って描画します。  
-引数`wrap`が`true`の場合は、`x`が`width`を超えた場合に、`y`に1文字分の縦幅ピクセル数を加え、`x=0`にして描画します（つまり、改行します）。また、文字列中に改行コード`'\n'`が出現した場合は`wrap`の値によらず改行します。  
-このように`drawString()`内では`x`と`y`を更新しながら文字列を描画して、最後の文字を描画し終わった後の`[x, y]`をリターンします。つまり、戻り値の`x`, `y`を再使用することで、`drawString()`を繰り返し呼ぶことができます。
+`drawString()`は文字列`string`を描画します。1文字づつ1文字分の横幅ピクセル数を`x`に加えながら、`drawChar()`を呼び出して描画します。  
+引数`wrap`が`true`の場合は、`x`が`width`を超えた場合に、`y`に1文字分の縦幅ピクセル数を加え、`x=0`にします（つまり、改行します）。また、文字列中に改行コード`'\n'`が出現した場合は`wrap`の値によらず改行します。  
+このように`drawString()`内では`x`と`y`を更新しながら文字列を描画して、最後の文字を描画し終わった後の`[x, y]`をリターンします。つまり、戻り値の`x`, `y`を再使用することで、`drawString()`を繰り返し呼ぶことができます。   
+`size`を省略すると`1`と解釈します。`wrap`を省略すると`true`と解釈します。
 
 ```javascript
 // Javascript Example
 :  :
-let white = lcd.color16(255, 255, 255); //16bit color for white
-lcd.drawChar(0, 0, 'A', white, white);
-
-var x = 10, y = 10;
-[x, y] = lcd.drawString(x, y, 'This is 1st draw.', white, white, true);
-[x, y] = lcd.drawString(x, y, 'This is 2nd draw.', red, red, true);
+let white = lcd.color16(255, 255, 255);
+let red = lcd.color16(255, 0, 0);
+let yellow = lcd.color16(255, 255, 0);
+lcd.drawChar(0, 0, '+', yellow, red, 4);
+var x = 7, y = 32;
+[x, y] = lcd.drawString(x, y, 'This is 1st draw.', white, white);
+[x, y] = lcd.drawString(x, y, 'This is 2nd draw.', red, red, 2, true);
 ```
 
 
@@ -156,8 +171,17 @@ var x = 10, y = 10;
 
 転送元の`canvas.context`を引数`context`に、転送範囲を引数`x0`, `y0`, `width`, `height`に指定し、転送先のLCDの座標を引数`x1`, `y1`に指定します。`drawContextBound()`と`drawContext()`は`context`の内容を18bitRGB値に減色したカラーで描画します。  
 `drawContext()`は`drawContextBound(context, 0, 0, lcd.width, lcd.height, 0, 0)`と等価です。  
-ネットワーク環境にもよりますが`drawContext()`で約100ミリ秒を要します。よって、動画再生の様な用途には不向きです。なお、描画性能はネットワーク環境にも依存します。
+ネットワーク環境にもよりますが`drawContext()`で約300ミリ秒を要します。なお、描画性能はネットワーク環境にも依存します。
 
+```javascript
+// Javascript
+//<canvas id="canvas" width="128" height="160"></canvas>
+let canvas = $('#canvas');
+let context = canvas[0].getContext('2d');
+context.fillStyle = '#FFFFCC';
+context.fillRect(0, 0, lcd.width, lcd.height);
+lcd.drawContext(context, false);
+```
 
 # その他のAPI
 
@@ -174,23 +198,16 @@ LCDの向きを`0`から`3`で指定します。初期化後は `0` (正位)で�
 // Javascript Example
 :  :
 lcd.fillScreen(0); //clear screen of black
-for (let n=0; n<4; n++) {
+for (let n = 0; n < 4; n++) {
   lcd.setRotation(n);
-  lcd.dwarChar(0, 0, n+"", 0xFFF, 0xFFF, 2);
-  lcd.drawPixel(0, 0, 0xF80); // plot origin point to red
+  lcd.drawChar(0, 0, n+'', 0xFFFF, 0xFFFF, 2);
+  lcd.fillCircle(2, 2, 2, 0xF800); // plot origin point to red
 }
 ```
 
-## setDisplayOn()<br>setDisplayOff()<br>setDisplay(on)
-
-LCD表示をON/OFFを制御します。  
-`setDisplayOn()`：LCD表示をONします。   
-`setDisplayOff()`：LCD表示をOFFします。  
-`setDisplay(on)`：引数`on`が`true`の場合、LCD表示をONします。`false`の場合、LCD表示をOFFします。
-
 ## setInversionOn()<br>setInversionOff()<br>setInversion(inversion)
 
-LCD表示の色反転を制御します。  
+LCD表示の色反転を制御します。LCD自体の機能です。  
 `setInversionOn()`：LCD表示を色反転します。   
 `setInversionOff()`：LCD表示の色反転を戻します。  
 `setInversion(inversion)`：引数`inversion`が`true`の場合、LCD表示を色反転します。`false`の場合、LCD表示の色反転を戻します。
@@ -198,16 +215,17 @@ LCD表示の色反転を制御します。
 
 ## rawBound(x, y, width, height, [pixel0, pixel1, pixel2, ...])<br>raw([pixel0, pixel1, pixel2, ...])
 
-`rawBound()`は引数`x`, `y`, `width`, `height`に指定したLCDの範囲に`pixel0`, `pixel1`, `pixel2`, `...`の順に描画します。各ピクセルは32bitRGBカラー値で指定しますが、実際の描画は18bitカラー値に減色されます。  
+`rawBound()`は引数`x`, `y`, `width`, `height`に指定したLCDの範囲に`pixel0`, `pixel1`, `pixel2`, `...`の順に描画します。各ピクセルデータは24bitRGB値の配列を指定します。実際の描画は18bitRGB値に減色されます。  
 `raw()`は`rawBound(0, 0, lcd.width, lcd.height, [pixel0, pixel1, pixel2, ...])`と等価でLCD全体を描画します。  
-これらの関数は`drawPixel()`の繰り返しより遥かに高速で描画できますが、`raw()`で約100ミリ秒を要します。よって、動画再生の様な用途には不向きです。なお、描画性能はネットワーク環境にも依存します。
+これらの関数は`drawPixel()`の繰り返しより遥かに高速で描画できますが、`raw()`で約800ミリ秒を要します。なお、描画性能はネットワーク環境にも依存します。   
+<font color="Red">注意）</font>`pixel[]`は24bitRGBカラー値を指定するため、後述の16bitRGB値プリセットカラーを指定すると色が異なります。
 
 `raw()`1回当たりのLCDへの転送データ量：60Kbyte ≒ 128 x 160 x 3byte（18bitカラー値）
 
 
 ## プリセットカラー（16bitRGB値）
 
-このライブラリで提供する16bitRGB値プリセットカラーを一覧で示します。各描画APIの`color`引数に使用します。なお、32bitRGB値から減色しているため、名前は異なるが値(色)が同じ場合があります。
+このライブラリで提供する16bitRGB値プリセットカラーを下表に示します。各描画APIの`color`引数に使用することができます。なお、プリセットカラーは24bitRGB値から16bitRGB値を生成しているため、名前は異なるが値(色)が同じ場合があります。
 
 ```javascript
 // Javascript Example

@@ -1,359 +1,3 @@
-<!DOCTYPE html>
-<html lang="ja">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <script src="https://obniz.io/js/jquery-3.2.1.min.js"></script>
-  <script src="https://unpkg.com/obniz@1.10.0/obniz.js" crossorigin="anonymous"></script>
-
-<!--  <script src="https://ssl.nak435.com/obniz/obniz.js"></script> -->
-  <link rel="stylesheet" type="text/css" href="https://ssl.nak435.com/obniz/obniz.css">
-<style>
-textarea {
-  font-family: sans-serif;
-  font-size: 12pt;
-}
-</style>
-</head>
-<body>
-
-<div id="obniz-debug"></div>
-
-<h2>SainSmart ST7735 1.8" TFT LCD 128x160 pixel (SPI interface)</h2>
-<h1>デモ</h1>
-<div id="panel" style="display:none;">
-  <table>
-    <tr><td>
-      <select id="sel" size="14" style="font-size: 14pt;" disabled>
-        <option value="0">&nbsp; 1.塗りつぶし</option>
-        <option value="1">&nbsp; 2.線</option>
-        <option value="2">&nbsp; 3.四角</option>
-        <option value="3">&nbsp; 4.三角</option>
-        <option value="4">&nbsp; 5.丸</option>
-        <option value="5">&nbsp; 6.文字</option>
-        <option value="6">&nbsp; 7.反転</option>
-        <option value="7">&nbsp; 8.white</option>
-        <option value="8">&nbsp; 9.black</option>
-        <option value="9">10.文章(1文字づつ)</option>
-        <option value="10">11.文章(1行づつ)</option>
-        <option value="11">12.回転</option>
-        <option value="12">13.イメージ描画(カラー)</option>
-        <option value="13">14.イメージ描画(グレイスケール)</option>
-      </select>
-    </td></tr>
-    <tr><td><div style="background-color:yellow; font-size: 14pt;">
-      イメージファイル
-      <input id="ufile" type="file" accept="image/jpeg,image/png,image/bmp,image/gif" disabled>
-    </div></td></tr>
-    <tr><td>
-      <div id="img"></div>
-    </td></tr>
-    <tr><td>
-      <canvas id="canvas" width="128" height="160"></canvas>
-    </td></tr>
-  </table>
-</div>
-
-<div><textarea id="text" cols="60" rows="10">
-</textarea><button id="run">run</button></div>
-
-<div id="print"></div>
-
-<script>
-'use strict';
-var tapORclick = (window.ontouchstart===null) ? "touchstart" : "click";
-
-console.time("start");
-
-var obniz = new Obniz("9659-3725");
-
-//obniz.debugprint = true;
-
-obniz.onconnect = async function () {
-
-/* pin assign
-    VCC    6  5v
-    GND    5  gnd
-    SCL    4  sclk
-    SDA    3  mosi
-    DC     2  d/cx
-    RES    1  reset
-    CS     0  chip select
-*/
-  Obniz.PartsRegistrate(SainSmartTFT18LCD);
-  let lcd = obniz.wired("SainSmartTFT18LCD", {scl:4, sda:3, dc:2, res:1, cs:0, vcc:6, gnd:5});
-
-  var rote = 0;
-  var grayScale = false;
-  console.time("ready");
-
-  lcd.setRotation(rote);
-  lcd.fillScreen(0);//black
-
-  $(function() {
-    $("#ufile").on("change", function() {
-      $("#ufile").attr("disabled", true);
-      if (!this.files.length) {
-        alert('ファイルが選択されていません');
-        return;
-      }
-      let file = this.files[0];
-      let canvas = $("#canvas");
-      let context = canvas[0].getContext('2d');
-      let canvasWidth = canvas.attr('width');
-      let canvasHeight = canvas.attr('height');
-      context.fillStyle = "black"; //'#FFFFCC';
-      context.fillRect(0, 0, canvasWidth, canvasHeight);
-      let image = new Image();
-      let fileReader = new FileReader();
-      fileReader.onload = function(evt) {
-        image.onload = async function() {
-            let scale; // w128w x h160 fitting
-            let aspectRatio = image.naturalWidth / image.naturalHeight;  //横/縦
-            if (aspectRatio > 1.0) {
-                // 横長
-                scale = lcd.width / image.naturalWidth;
-            } else /*if (aspectRatio <= 1.0)*/ {
-                // 縦長 or 正方形
-                scale = lcd.height / image.naturalHeight;
-            }
-            let scaledHeight, scaledWidth;
-            if (scale < 1) {
-                //縮小
-                scaledWidth = Math.floor(image.naturalWidth * scale);
-                scaledHeight = Math.floor(image.naturalHeight * scale);
-            /*canvas.attr('width', scaledWidth);
-                canvas.attr('height', scaledHeight);*/
-            } else {
-                //縮小不要
-                scaledWidth = image.naturalWidth;
-                scaledHeight = image.naturalHeight;
-            }
-            let x = Math.round((canvasWidth - scaledWidth)/2);
-            let y = Math.round((canvasHeight - scaledHeight)/2);
-            context.drawImage(image, x, y, scaledWidth, scaledHeight);
-            let info = "size: W" + scaledWidth + "× H" + scaledHeight;
-
-            $("#img").text(info);
-            lcd.drawContext(context, grayScale);
-            await obniz.wait(1);
-        }
-        image.src = evt.target.result;
-      }
-      fileReader.readAsDataURL(file);
-    });
-  });
-
-  obniz.switch.onchange = function(state) {
-    $('#print').text(state);
-    obniz.display.clear();
-    obniz.display.print(state);
-  }
-
-  function _min(x) {
-    let args = Array.prototype.slice.call(arguments, 0);
-    var minValue = Number.MAX_VALUE;
-    args.forEach(function(v) { if (v < minValue) minValue = v; });
-    return minValue;
-  }
-
-  $("#run").on(tapORclick, async function () {
-    console.log($("#text").val());
-    console.time();
-    eval($("#text").val());
-    console.timeEnd();
-  });
-  $("#sel").on("change", async function() {
-    $("#sel").attr("disabled", true);
-    $("#ufile").attr("disabled", true);
-    let no = Number($("#sel").val());
-
-    $("#img").text("run "+no);
-    console.log("run "+no);
-    let cl = [ST7735_WHITE, ST7735_YELLOW, ST7735_CYAN, ST7735_GREEN, ST7735_MAGENTA, ST7735_RED, ST7735_BLUE];
-    switch (no) {
-    case 0: //塗りつぶし
-      console.time("fillscreen");
-      for (let n=0; n<10; n++) {
-        let c = Math.floor(Math.random() * 7);
-        lcd.fillScreen(cl[c]);
-        await obniz.wait(1);
-      }
-      console.timeEnd("fillscreen");
-      lcd.fillScreen(ST7735_BLACK);
-      break;
-
-    case 1: //線
-      console.time("line");
-      for (let n=0; n<10; n++) {
-        let c = n % 7;
-        let x = Math.floor(Math.random() * 128);
-        let y = Math.floor(Math.random() * 160);
-        let w = Math.floor(Math.random() * 128);
-        let h = Math.floor(Math.random() * 160);
-        lcd.print_debug(x, y, w, h, c);
-        lcd.drawLine(x, y, w, h, cl[c]);
-        await obniz.wait(1);
-      }
-      console.timeEnd("line");
-      break;
-
-    case 2: { //四角
-      let f = [
-        function(x,y,w,h,r,c) {lcd.drawRect(x, y, w, h, c);},
-        function(x,y,w,h,r,c) {lcd.fillRect(x, y, w, h, c);},
-        function(x,y,w,h,r,c) {lcd.drawRoundRect(x, y, w, h, r, c);},
-        function(x,y,w,h,r,c) {lcd.fillRoundRect(x, y, w, h, r, c);}
-      ];
-      for (let n=0; n<10; n++) {
-        let round = Math.floor(Math.random() * 2);
-        let fill = Math.floor(Math.random() * 2);
-        let c =  n % 7;
-        let x = Math.floor(Math.random() * 110);
-        let y = Math.floor(Math.random() * 150);
-        let w = Math.floor(Math.random() * (110-x))+10;
-        let h = Math.floor(Math.random() * (150-y))+10;
-        let r = Math.floor(Math.random() * _min(3, h, w))+1;
-        lcd.print_debug("Rect: ", round, fill, c, x, y, w, h, r, "="+(w*h));
-        f[fill](x, y, w, h, r, cl[c]);
-        await obniz.wait(1);
-      }}
-      break;
-
-    case 3: //三角
-      for (let n=0; n<10; n++) {
-        let fill = Math.floor(Math.random() * 2);
-        let c = n % 7;
-        let x0 = Math.floor(Math.random() * 120);
-        let y0 = Math.floor(Math.random() * 150);
-        let x1 = Math.floor(Math.random() * 120);
-        let y1 = Math.floor(Math.random() * 150);
-        let x2 = Math.floor(Math.random() * 120);
-        let y2 = Math.floor(Math.random() * 150);
-        lcd.print_debug(fill, x0, y0, x1, y1, x2, y2, c);
-        if (fill==1) lcd.fillTriangle(x0, y0, x1, y1, x2, y2, cl[c]);
-        else         lcd.drawTriangle(x0, y0, x1, y1, x2, y2, cl[c]);
-        await obniz.wait(1);
-      }
-      break;
-
-    case 4: //丸
-      for (let n=0; n<10; n++) {
-        let fill = Math.floor(Math.random() * 2);
-        let c = n % 7;
-        let x = Math.floor(Math.random() * 120);
-        let y = Math.floor(Math.random() * 150);
-        let r = Math.floor(Math.random() * 60);
-        lcd.print_debug(fill, x, y, r, c);
-        if (fill==1) lcd.fillCircle(x, y, r, cl[c]);
-        else         lcd.drawCircle(x, y, r, cl[c]);
-        await obniz.wait(1);
-      }
-      break;
-
-    case 5: { //文字
-      var x = 0, y = 0;
-      for (let n=0; n<10; n++) {
-        let color = cl[n % 7];
-        let size = (n % 4)+1;
-        [x, y] = lcd.drawString(x, y, "ABCabc123", color, ST7735_BLACK, size, true);
-        await obniz.wait(1);
-        if (y > 160) y = 0;
-      }}
-      break;
-
-    case 6: //反転
-      for (let n=0; n<2; n++) {
-        lcd.setInversionOn();
-        await obniz.wait(300);
-        lcd.setInversionOff();
-        await obniz.wait(300);
-      }
-      for (let n=0; n<10; n++) {
-        lcd.setInversionOn();
-        await obniz.wait(20);
-        lcd.setInversionOff();
-        await obniz.wait(20);
-      }
-      break;
-
-    case 7: //white
-      lcd.fillScreen(ST7735_WHITE);
-      break;
-
-    case 8: //black
-      lcd.fillScreen(ST7735_BLACK);
-      break;
-
-    case 9:
-    case 10: {
-      alert("すごく時間が掛かります!!");
-      lcd.fillScreen(ST7735_BLACK);
-      await obniz.wait(1);
-      console.time("sentence");
-      var c = 0, x = 0, y = 0;
-      let ch  = (no == 9) ? 1 : (lcd.width / 6); // 6 pixels per character
-      const lcdDescription = 'SainSmart 1.8" TFT LCD Display is an LCD with 128x160 color pixels and SPI interface, transmissive and normally white. It is 256K colors and have little space so we placed a microSD card holder so you can easily load full color bitmaps from a FAT16/FAT32 fromatted microSD card. The screen includes a controller ST7735R which can display full 18-bit color(262,144 shades!).It is also compatible with 3.3V/5V TTL logic. ';
-      let len = lcdDescription.length;
-      while (c < len) {
-        let str = lcdDescription.substr(c, ch);
-        let ret = lcd.drawString(x, y, str, ST7735_WHITE, ST7735_WHITE, 1, true);
-        c += ch;
-        x = ret[0];
-        y = ret[1];
-        await obniz.wait(10);
-      }
-      console.timeEnd("sentence");
-      }
-      break;
-
-    case 11:
-      lcd.setRotation(++rote);
-      printCenter("ready", ST7735_WHITE, ST7735_WHITE, 1, true);
-      await obniz.wait(1);
-    break;
-
-    case 12: //draw color image
-      alert('「ファイルを選択」からイメージファイルを選択してください。');
-      grayScale = false;
-      $("#ufile").attr("disabled", false);
-      break;
-
-    case 13: //draw gray-scale image
-      alert('「ファイルを選択」からイメージファイルを選択してください。');
-      grayScale = true;
-      $("#ufile").attr("disabled", false);
-      break;
-
-    default:
-    }
-    console.log("compleating...");
-//  printCenter("compleate", ST7735_WHITE, ST7735_BLACK, 1, true);
-    $("#img").text("compleate");
-    console.log("compleate");
-
-    $("#sel").prop('selectedIndex', -1);
-    $("#sel").attr("disabled", false);
-  });
-
-  printCenter("ready", ST7735_WHITE, ST7735_WHITE, 1, true);
-
-  $("#img").text("ready");  //
-  console.timeEnd("ready");
-
-  $("#panel").css("display", "block");
-  $("#sel").attr("disabled", false);
-
-  function printCenter(str, color, bg, size, wrap) {
-    let len = str.length;
-    let x = (lcd.width - len * 6) / 2;
-    let y = (lcd.height - 1 * 8) / 2;
-    lcd.drawString(x, y, str, color, bg, size, wrap);
-  }
-
-}
-
-//--------------------------------------------------------------
 //SainSmart ST7735 1.8" TFT LCD 128x160 pixel
 class SainSmartTFT18LCD {
   constructor() {
@@ -466,7 +110,7 @@ class SainSmartTFT18LCD {
     return ((r & 0xF8) << 8) | ((g & 0xFC) << 3) | (b >> 3);
   }
 
-  _initG() {
+  _initG() { // initialize for Green Tab
     this.writeCommand(ST7735_SLPOUT);    //Sleep out & booster on
     this.obniz.wait(120);
     this.write(ST7735_FRMCTR1, [0x01, 0x2C, 0x2D]);
@@ -570,7 +214,6 @@ class SainSmartTFT18LCD {
     this.fillRect(0, 0, this.width, this.height, color);
   }
   fillRect(x, y, w, h, color) {
-    // rudimentary clipping (drawChar w/big text requires this)
     if ((x >= this.width) || (y >= this.height)) return;
     if ((x + w - 1) >= this.width)  w = this.width  - x;
     if ((y + h - 1) >= this.height) h = this.height - y;
@@ -693,23 +336,19 @@ class SainSmartTFT18LCD {
     }
   }
   drawRoundRect(x, y, w, h, r, color) {
-    // smarter version
     this.drawHLine(x + r    , y        , w - 2 * r, color); // Top
     this.drawHLine(x + r    , y + h - 1, w - 2 * r, color); // Bottom
     this.drawVLine(x        , y + r    , h - 2 * r, color); // Left
     this.drawVLine(x + w - 1, y + r    , h - 2 * r, color); // Right
 
-    // draw four corners
     this._drawCircleHelper(x + r        , y + r        , r, 1, color);
     this._drawCircleHelper(x + w - r - 1, y + r        , r, 2, color);
     this._drawCircleHelper(x + w - r - 1, y + h - r - 1, r, 4, color);
     this._drawCircleHelper(x + r        , y + h - r - 1, r, 8, color);
   }
   fillRoundRect(x, y, w, h, r, color) {
-    // smarter version
     this.fillRect(x + r, y, w - 2 * r, h, color);
 
-    // draw four corners
     this._fillCircleHelper(x + w - r - 1, y + r, r, 1, h - 2 * r - 1, color);
     this._fillCircleHelper(x + r        , y + r, r, 2, h - 2 * r - 1, color);
   }
@@ -735,7 +374,7 @@ class SainSmartTFT18LCD {
       x1 = [x0, x0 = x1][0]; //this._swap(x0, x1);
     }
 
-    if(y0 == y2) { // Handle awkward all-on-same-line case as its own thing
+    if (y0 == y2) { // Handle awkward all-on-same-line case as its own thing
       a = b = x0;
       if (x1 < a)      a = x1;
       else if (x1 > b) b = x1;
@@ -755,30 +394,18 @@ class SainSmartTFT18LCD {
       sa   = 0,
       sb   = 0;
 
-    // For upper part of triangle, find scanline crossings for segments
-    // 0-1 and 0-2.  If y1=y2 (flat-bottomed triangle), the scanline y1
-    // is included here (and second loop will be skipped, avoiding a /0
-    // error there), otherwise scanline y1 is skipped here and handled
-    // in the second loop...which also avoids a /0 error here if y0=y1
-    // (flat-topped triangle).
-    if (y1 == y2) last = y1;     // Include y1 scanline
-    else          last = y1 - 1; // Skip it
+    if (y1 == y2) last = y1;     // include y1 scanline
+    else          last = y1 - 1; // skip it
 
     for (y = y0; y <= last; y++) {
       a   = x0 + Math.floor(sa / dy01);
       b   = x0 + Math.floor(sb / dy02);
       sa += dx01;
       sb += dx02;
-      /* longhand:
-      a = x0 + (x1 - x0) * (y - y0) / (y1 - y0);
-      b = x0 + (x2 - x0) * (y - y0) / (y2 - y0);
-      */
       if (a > b) b = [a, a = b][0]; //this._swap(a,b);
       this.drawHLine(a, y, b - a + 1, color);
     }
 
-    // For lower part of triangle, find scanline crossings for segments
-    // 0-2 and 1-2.  This loop is skipped if y1=y2.
     sa = dx12 * (y - y1);
     sb = dx02 * (y - y0);
     for (; y <= y2; y++) {
@@ -786,18 +413,13 @@ class SainSmartTFT18LCD {
       b   = x0 + Math.floor(sb / dy02);
       sa += dx12;
       sb += dx02;
-      /* longhand:
-      a = x1 + (x2 - x1) * (y - y1) / (y2 - y1);
-      b = x0 + (x2 - x0) * (y - y0) / (y2 - y0);
-      */
       if (a > b) b = [a, a = b][0]; //this._swap(a,b);
       this.drawHLine(a, y, b - a + 1, color);
     }
   }
   drawVLine(x, y, h, color) {
-    // Rudimentary clipping
     if ((x >= this.width) || (y >= this.height)) return;
-    if((y + h - 1) >= this.height) h = this.height-y;
+    if ((y + h - 1) >= this.height) h = this.height - y;
 
     this.setAddrWindow(x, y, x, y + h - 1);
 
@@ -810,7 +432,6 @@ class SainSmartTFT18LCD {
     this.writeData(data);
   }
   drawHLine(x, y, w, color) {
-    // Rudimentary clipping
     if ((x >= this.width) || (y >= this.height)) return;
     if ((x + w - 1) >= this.width)  w = this.width - x;
 
@@ -861,6 +482,7 @@ class SainSmartTFT18LCD {
     this.writeData([color >> 8, color & 0xFF]);
   }
   drawChar(x, y, ch, color, bg, size) {
+    bg = bg || color;
     size = size || 1;
     if ((x >= this.width)		|| // Clip right
       (y >= this.height)		|| // Clip bottom
@@ -870,13 +492,13 @@ class SainSmartTFT18LCD {
 
     let c = ch.charCodeAt(0);
     for (let i = 0; i < 6; i++) {
-      var line = (i == 5) ? 0 : font[(c*5)+i];
+      var line = (i == 5) ? 0 : font[(c * 5) + i];
       for (let j = 0; j < 8; j++) {
         if (line & 0x1) {
           if (size == 1) // default size
             this.drawPixel(x + i, y + j, color);
           else {  // big size
-            this.fillRect(x + (i * size), y+ ( j * size), size, size, color);
+            this.fillRect(x + (i * size), y + ( j * size), size, size, color);
           }
         } else if (bg != color) {
           if (size == 1) // default size
@@ -890,6 +512,7 @@ class SainSmartTFT18LCD {
     }
   }
   drawString(x, y, str, color, bg, size, wrap) {
+    bg = bg || color;
     size = size || 1;
     wrap = wrap || true;
     for (let n=0; n < str.length; n++) {
@@ -921,7 +544,7 @@ class SainSmartTFT18LCD {
     this.write(ST7735_COLMOD, [ST7735_18bit]); //18bit/pixel
     let imageData = context.getImageData(x0, y0, width, height).data;
     var rgb = [];
-    for (let n = 0; n < imageData.length; n+=4) {
+    for (let n = 0; n < imageData.length; n += 4) {
       let r = imageData[n + 0];
       let g = imageData[n + 1];
       let b = imageData[n + 2];
@@ -1442,7 +1065,3 @@ const font = [
   0x00, 0x3C, 0x3C, 0x3C, 0x3C,
   0x00, 0x00, 0x00, 0x00, 0x00,
 ];
-
-</script>
-</body>
-</html>
