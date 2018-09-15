@@ -92,7 +92,7 @@ LCD全体を`color`で塗りつぶします。次の`fillRect(0, 0, lcd.width, l
 
 ## drawTriangle(x0, y0, x1, y1, x2, y2, color)<br>fillTriangle(x0, y0, x1, y1, x2, y2, color)
   
-`drawTriangle()`は引数で指定した座標3点`x0`, `y0`と`x1`, `y1`と`x2`, `y2`を結ぶ三角形を`color`で描画します。
+`drawTriangle()`は引数で指定した座標3点`x0`, `y0`と`x1`, `y1`と`x2`, `y2`を結ぶ三角形を`color`で描画します。
 `fillTriangle()`は塗りつぶします。
 
 
