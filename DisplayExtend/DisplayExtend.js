@@ -17,10 +17,10 @@ class DisplayExtend {
   warnCanvasAvailability() {
     if (this.obniz.isNode) {
       throw new Error(
-        'obniz.js require node-canvas to draw rich contents. see more detail on docs'
+        'DisplayExtend.js require node-canvas to draw rich contents. see more detail on docs'
       );
     } else {
-      throw new Error('obniz.js cant create canvas element to body');
+      throw new Error('DisplayExtend.js cant create canvas element to body');
     }
   }
 
@@ -106,6 +106,7 @@ class DisplayExtend {
   }
 
   pos(x, y) {
+    this._context();
     if (typeof x == 'number') {
       this._pos.x = x;
     }
@@ -164,16 +165,7 @@ class DisplayExtend {
   }
 
   qr(text, correction) {
-    let obj = {};
-    obj['display'] = {
-      qr: {
-        text,
-      },
-    }
-    if (correction) {
-      obj['display'].qr.correction = correction;
-    }
-    this.obniz.send(obj);
+    this.obniz.display.qr(text, correction);
   }
 
   raw(data) {
@@ -201,6 +193,33 @@ class DisplayExtend {
       context.lineWidth = this.lineSize;
       context.lineCap = "round";
       context.arc(x, y, radius, startAngle, endAngle, anticlockwise);
+      if (mustFill) {
+        context.fill();
+      } else {
+        context.stroke();
+      }
+      if (this._drawImmediately) this.draw(context);
+    } else {
+      this.warnCanvasAvailability();
+    }
+  }
+
+  roundRect(x, y, width, height, radius, mustFill) {
+    const context = this._context();
+    if (context) {
+      context.beginPath();
+        context.lineWidth = this.lineSize;
+        context.lineCap = "round";
+        context.moveTo(x + radius, y);
+        context.lineTo(x + width - radius, y);
+        context.arc(x + width - radius, y + radius, radius, Math.PI * 1.5, 0, false);
+        context.lineTo(x + width, y + height - radius);
+        context.arc(x + width - radius, y + height - radius, radius, 0, Math.PI * 0.5, false);
+        context.lineTo(x + radius, y + height);
+        context.arc(x + radius, y + height - radius, radius, Math.PI * 0.5, Math.PI, false);
+        context.lineTo(x, y + radius);
+        context.arc(x + radius, y + radius, radius, Math.PI, Math.PI * 1.5, false);
+      context.closePath();
       if (mustFill) {
         context.fill();
       } else {
@@ -251,31 +270,3 @@ class DisplayExtend {
 if (typeof module === 'object') {
   module.exports = DisplayExtend;
 }
-
-/*
-function drawRect(param) {
-    var ctx = param.ctx;
-    var x = param.x;
-    var y =param.y;
-    var width = param.width;
-    var height = param.height;
-    var radius = param.radius || 0;
-    var color = param.color;
-    
-    ctx.save();
-        ctx.fillStyle = color;
-        ctx.beginPath();
-            ctx.moveTo(x + radius, y);
-            ctx.lineTo(x + width - radius, y);
-            ctx.arc(x + width - radius, y + radius, radius, Math.PI * 1.5, 0, false);
-            ctx.lineTo(x + width, y + height - radius);
-            ctx.arc(x + width - radius, y + height - radius, radius, 0, Math.PI * 0.5, false);
-            ctx.lineTo(x + radius, y + height);
-            ctx.arc(x + radius, y + height - radius, radius, Math.PI * 0.5, Math.PI, false);
-            ctx.lineTo(x, y + radius);
-            ctx.arc(x + radius, y + radius, radius, Math.PI, Math.PI * 1.5, false);
-        ctx.closePath();
-        ctx.fill();
-    ctx.restore();
-}
-*/
