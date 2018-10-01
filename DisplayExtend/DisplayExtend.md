@@ -4,7 +4,8 @@ obniz.js標準のDisplayクラスの上位互換クラス。
 [Display](https://obniz.io/doc/sdk/doc/display)と同じすべての関数が機能するうえ、以下の機能を追加しています。ブラウザおよびNode.js環境で使用できます。
 
 - 描画関数の追加<br>
-arc() ： 円弧の描画
+arc() ： 円弧の描画<br>
+roundRect() ： 角丸矩形の描画
 
 - プロパティの追加<br>
 lineSize ： 線の太さ<br>
@@ -53,6 +54,12 @@ displayEx.autoClear = 1000;
 円弧を描画します。
 引数`x, y, radius, startAngle, endAngle, anticlockwise`は、Canvasの[arc()](https://developer.mozilla.org/ja/docs/Web/API/CanvasRenderingContext2D/arc)と同じです。
 最後の引数`fill`が`true`の場合は図形を塗り潰します。
+
+## roundRect(x, y, width, height, radius, fill)
+
+角丸矩形を描画します。
+引数`x, y, width, height`と`fill`は、標準の`rect()`と同じです。
+引数`radius`にて角丸の半径を指定します。
 
 ## lineSize
 
