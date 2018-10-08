@@ -16,7 +16,7 @@ const scroll = obniz.wired("ScrollDisplay");
 ## font(font, size)
 
 表示するメッセージのフォントを指定します。初期化後は**Arial**の**16**pxです。
-ディスプレイの高さは64pixelため、64px以下をお薦めします。
+ディスプレイの高さは64pixelため、64px以下をお薦めします。ただし、使用するフォントによっては64pxでも上下が欠けることがあります。
 
 
 ## textプロパティ
