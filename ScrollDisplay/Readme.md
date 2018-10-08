@@ -18,12 +18,30 @@ const scroll = obniz.wired("ScrollDisplay");
 表示するメッセージのフォントを指定します。初期化後は**Arial**の**16**pxです。
 ディスプレイの高さは64pixelため、64px以下をお薦めします。ただし、使用するフォントによっては64pxでも上下が欠けることがあります。
 
+```javascript
+//Javascript
+scroll.font('serif', 24); //serif 24px 
+```
 
 ## textプロパティ
 
 表示するメッセージを指定します。複数行のメッセージを指定する場合は、改行コード`\n`で区切ります。一行づつスクロール表示します。
 表示中にtextプロパティを変更した場合は、再`start()`したときに有効となります。
 
+```javascript
+//Javascript
+scroll.text = '1st line messegage' + '\n' + '2nd line message'; 
+```
+
+## baselineプロパティ
+
+表示するメッセージの基点を指定します。指定できるのは、`'top'`と`'bottom'`です。初期化後は`'top'`です。  
+詳しい意味は[こちら](https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D/textBaseline)を参照してください。
+
+```javascript
+//Javascript
+scroll.baseline = 'bottom'; 
+```
 
 ## speedプロパティ、stepプロパティ
 
@@ -61,5 +79,5 @@ scroll.stop();
 ```javascript
 //Javascript
 scroll.start();
-scroll.isScrolling; //true
+console.log(scroll.isScrolling); //true
 ```
