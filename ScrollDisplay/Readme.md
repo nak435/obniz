@@ -1,6 +1,7 @@
 # ScrollDisplayクラス
 
 obnizのディスプレイに好きなメッセージをスクロール表示するクラスです。  
+node.js環境の場合はnode-canvasを必要とします。  
 デモムービーは[こちら](https://ssl.nak435.com/obniz/demo2.mov)。
 
 # 使い方
