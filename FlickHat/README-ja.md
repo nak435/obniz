@@ -54,7 +54,7 @@ await flickhat.start(function(fwinfo) {
 
 ## [await] polling({timeout})
 
-Flick Hatをポーリングします。定期的に呼び出す必要があるため、タイマーループまたはobnizのアイドルループ内で呼び出します。引数`timeout`は、何もジェスチャー情報が無い場合にウエイトする最大時間をミリ秒で指定します。省略値は3000ms(3秒)です。
+Flick Hatをポーリングします。定期的に呼び出す必要があるため、タイマーループまたはobnizのアイドルループ内で呼び出します。引数`timeout`は、ジェスチャー情報が何も無い場合に監視ループする最大時間をミリ秒で指定します。省略値は3000ms(3秒)です。（`ts`ピンが`high(true)`から`low(false)`に変化することを監視する）
 
 ```javascript
 // Javascript Example
