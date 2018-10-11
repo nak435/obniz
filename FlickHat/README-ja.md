@@ -16,7 +16,7 @@ Flick HATとFlick Zeroは3.3V駆動のため、電源はobnizのioピンから�
 
 Flick Largeは5V駆動できるため、電源も含めてすべてobnizのioピンに接続します。
 
-Flick Largeには2色のLEDが付いていますが、このライブラリでは制御しません。もし使用する場合は、[LEDライブラリ](https://obniz.io/sdk/parts/LED/README.md)を組み合わせることにより、必要に応じて制御してください。
+Flick Largeには`red`と`green`の2色LEDが付いていますが、このライブラリでは制御しません。もし使用する場合は、[LEDライブラリ](https://obniz.io/sdk/parts/LED/README.md)を組み合わせることにより、必要に応じて制御してください。
 
 ![](./flick_large_wired.png)
 
