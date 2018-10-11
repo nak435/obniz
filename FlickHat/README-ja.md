@@ -15,7 +15,7 @@
 
 ## obnizとの接続
 
-Flick HATとFlick Zeroは3.3V駆動のため、電源はobnizのioピンから直接取ることができません。3.3V電源を別に用意してください。電源以外の`SDA, SCL, GND, Reset, TS`は、下図を参考にobnizのioピンに接続します。  
+Flick HATとFlick Zeroは3.3V駆動のため、電源はobnizのioピンから直接取ることができません。3.3V電源を別に用意してください。電源以外の`SDA, SCL, Gnd, Reset, TS`は、下図を参考にobnizのioピンに接続します。  
 
 ![](./flick_hat_wired_50.png)
 
@@ -96,6 +96,8 @@ Flick Hatから各ジェスチャー情報を受け取るためのコールバ�
   seq | Flick Hat受信データ通番：0～255
   
   Flick Hatの左下が`x:0, y:0`、右上が`x:1, y:1`、Z軸方向はFlick Hatに近い方が`0`。
+  
+  例）中央やや下側をジェスチャーの場合； `{ x: 0.2, y:0.5, z:0.4, seq: 99 }`
 
 
 ## ongestureプロパティ  
@@ -108,34 +110,40 @@ Flick Hatから各ジェスチャー情報を受け取るためのコールバ�
   to | 'west', 'east', 'north', 'south'のいずれか
   seq | Flick Hat受信データ通番：0～255
 
-  例：上から下方向のジェスチャーの場合 `{ action: 'gesture', from:'north', to: 'south', seq: 99 }`
+  例）上から下方向のジェスチャーの場合； `{ action: 'gesture', from:'north', to: 'south', seq: 99 }`
 
 ## ontouchプロパティ  
   touchジェスチャー（タッチイベント）通知を受け取ります。コールバック関数で受け取るオブジェクトの意味は次の通り。  
   
   プロパティ | 意味
   |--|--|
-  action | 'touches'（固定）
+  action | 'touche'（固定）
   positions | [ 'west'｜'east'｜'north'｜'south'｜'center' ] //タッチされた場所が配列で格納される<br>　'west'：Flick Hatの左側部分、<br>　'east'：右側部分、 <br>　'north'：上側部分、 <br>　'south'：下側部分、 <br>　'center'：中央部分
   seq | Flick Hat受信データ通番：0～255
 
+ 例）下側と中央部がタッチされた場合； `{ action: 'touche', positions: ['south', 'center'], seq: 99 }`
+ 
 ## ontapプロパティ  
   tapジェスチャー（タップイベント）通知を受け取ります。コールバック関数で受け取るオブジェクトの意味は次の通り。  
   
   プロパティ | 意味
   |--|--|
-  action | 'taps'（固定）
+  action | 'tap'（固定）
   positions | [ 'west'｜'east'｜'north'｜'south'｜'center' ] //タップされた場所が配列で格納される
   seq | Flick Hat受信データ通番：0～255
+
+ 例）右側がタップされた場合； `{ action: 'tap', positions: ['east'], seq:99 }`
 
 ## ondoubletapプロパティ  
   double tapジェスチャー（ダブルタップイベント）通知を受け取ります。コールバック関数で受け取るオブジェクトの意味は次の通り。  
   
   プロパティ | 意味
   |--|--|
-  action | 'doubletaps'（固定）
+  action | 'doubletap'（固定）
   positions | [ 'west'｜'east'｜'north'｜'south'｜'center' ] //ダブルタップされた場所が配列で格納される
   seq | Flick Hat受信データ通番：0～255
+
+ 例）中央部がダブルタップされた場合； `{ action: 'doubletap', positions: ['center'], seq: 99 }`
 
 ## onairwheelプロパティ  
   air wheelジェスチャー（時計回り、反時計回りのジェスチャー）通知を受け取ります。コールバック関数で受け取るオブジェクトの意味は次の通り。  
@@ -146,6 +154,7 @@ Flick Hatから各ジェスチャー情報を受け取るためのコールバ�
   rotation | ジェスチャーで描いた円周の数（時計回りのジェスチャーで増加、反時計回りのジェスチャーで減少）
   seq | Flick Hat受信データ通番：0～255
 
+ 例）時計回りのジェスチャーの場合； `{ delta: 22.5, rotation: 2, seq: 99 }`
 
 
 ```javascript
@@ -158,13 +167,13 @@ flickhat.ongesture = function(gesture) {
   console.log(gesture); // { action: 'gesture', from:'north', to: 'south', seq: 99 }
 }
 flickhat.onontouch = function(ontouch) {
-  console.log(touch); // { action: 'touches', positions: ['south', 'center'], seq: 99 }
+  console.log(touch); // { action: 'touche', positions: ['south', 'center'], seq: 99 }
 }
 flickhat.ontap = function(tap) {
-  console.log(tap); // { action: 'taps', positions: ['east'], seq:99 }
+  console.log(tap); // { action: 'tap', positions: ['east'], seq:99 }
 }
 flickhat.ondoubletap = function(doubletap) {
-  console.log(doubletap); // { action: 'doubletaps', positions: ['center'], seq: 99 }
+  console.log(doubletap); // { action: 'doubletap', positions: ['center'], seq: 99 }
 }
 flickhat.onairwheel = function(airwheel) {
   console.log(airwheel); // { delta: 22.5, rotation: 2, seq: 99 }
