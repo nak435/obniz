@@ -19,7 +19,7 @@ Flick Largeは5V駆動できるため、電源も含めてすべてobnizのioピ
 Flick Largeには`red`と`green`の2色LEDが付いていますが、このライブラリでは制御しません。もし使用する場合は、[LEDライブラリ](https://obniz.io/sdk/parts/LED/README.md)を組み合わせることにより、必要に応じて制御してください。
 
 ![](./flick_large_wired_50.png)
-
+![](./flick_large_wired_closeup.png)
 
 ## wired( { vcc, } sda, scl, reset, ts, gnd )
 
