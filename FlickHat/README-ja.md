@@ -1,10 +1,8 @@
-# Flick HAT / Flick Zero / Flick Large
+# Flick HAT
 
-
-Flick HATはジェスチャートラッキングができるユニークなパーツです。もともとはRaspberry Piに向けたパーツですが、obnizから利用するためのライブラリを作成しました。
+Flick HAT / Flick Zero / Flick Largeはジェスチャートラッキングができるユニークなパーツです。もともとはRaspberry Piに向けたパーツですが、obnizから利用するためのライブラリを作成しました。
 
 ![](./flick_hat.png)
-
 
 
 ## obnizとの接続
@@ -57,6 +55,7 @@ obniz.repeat(async function() {
   await flick.polling(1000)); //1秒
 }, 100);
 ```
+
 
 ## コールバック関数プロパティ
 
