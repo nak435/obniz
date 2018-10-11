@@ -1,8 +1,10 @@
 # Flick HAT
 
+
 Flick HAT / Flick Zero / Flick Largeはジェスチャートラッキングができるユニークなパーツです。もともとはRaspberry Piに向けたパーツですが、obnizから利用するためのライブラリを作成しました。
 
 ![](./flick_hat.png)
+
 
 
 ## obnizとの接続
@@ -14,7 +16,7 @@ Flick HATとFlick Zeroは3.3V駆動のため、電源はobnizのioピンから�
 
 Flick Largeは5V駆動できるため、電源も含めてすべてobnizのioピンに接続します。
 
-Flick Largeには2色のLEDが付いていますが、このライブラリでは制御しません。もし使用する場合は、[LEDライブラリ](https://obniz.io/sdk/parts/LED/README.md)を組み合わせることにより、必要により制御してください。
+Flick Largeには2色のLEDが付いていますが、このライブラリでは制御しません。もし使用する場合は、[LEDライブラリ](https://obniz.io/sdk/parts/LED/README.md)を組み合わせることにより、必要に応じて制御してください。
 
 ![](./flick_large_wired.png)
 
@@ -29,6 +31,13 @@ Flick Largeには2色のLEDが付いていますが、このライブラリで�
 let flickhat = obniz.wired("FlickHat", { vcc: 0, sda: 1, scl: 2, reset: 3, ts: 4, gnd: 5 });
 ```
 
+Flick LargeでLEDを制御する場合の例；
+
+```javascript
+// Javascript Example
+let led1 = obniz.wired("LED", { anode: 6 });
+let led2 = obniz.wired("LED", { anode: 7 });
+```
 
 ## [await] start({callbackFwInfo})
 
@@ -55,7 +64,6 @@ obniz.repeat(async function() {
   await flick.polling(1000)); //1秒
 }, 100);
 ```
-
 
 ## コールバック関数プロパティ
 
