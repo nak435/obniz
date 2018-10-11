@@ -9,8 +9,7 @@
 
 日本では
 [マルツ](https://www.marutsu.co.jp/pc/i/839457/)や
-[RS](https://jp.rs-online.com/web/p/human-machine-interface-hmi-development-kits/1365431/)
-から購入可能です。
+[RS](https://jp.rs-online.com/web/p/human-machine-interface-hmi-development-kits/1365431/)、他から購入可能です。
 
 
 ## obnizとの接続
