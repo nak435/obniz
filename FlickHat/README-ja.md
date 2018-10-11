@@ -83,11 +83,11 @@ Flick Hatから各ジェスチャー情報を受け取るためのコールバ�
 - onairwheelプロパティ
 
 
-## onxyzプロパティ
+## onxyz = function(xyz)
 
-  ジェスチャーした位置を受け取ります。onxyzコールバック関数で受け取るオブジェクトの意味は次の通り。  
+  ジェスチャーした位置を受け取ります。onxyzコールバック関数で受け取る`xyz`オブジェクトの内容は次の通り。  
   
-  プロパティ | 意味
+  プロパティ | 内容
   |--|--|
   x | x座標：0～1
   y | y座標：0～1
@@ -99,26 +99,28 @@ Flick Hatから各ジェスチャー情報を受け取るためのコールバ�
   例）中央やや下側をジェスチャーの場合； `{ x: 0.2, y:0.5, z:0.4, seq: 99 }`
 
 
-## ongestureプロパティ  
-  flickジェスチャー（上から下、左から右などのジェスチャー）通知を受け取ります。ongestureコールバック関数で受け取るオブジェクトの意味は次の通り。  
+## ongesture = function(gesture)
+  flickジェスチャー（上から下、左から右などのジェスチャー）通知を受け取ります。ongestureコールバック関数で受け取る`gesture`オブジェクトの内容は次の通り。  
   
-  プロパティ | 意味
+  プロパティ | 内容
   |--|--|
   action | 'gesture'（固定）
   from | 'west', 'east', 'north', 'south'のいずれか
   to | 'west', 'east', 'north', 'south'のいずれか
   seq | Flick Hat受信データ通番：0～255
+  raw | ローデータ
 
-  例）上から下方向のジェスチャーの場合； `{ action: 'gesture', from:'north', to: 'south', seq: 99 }`
+  例）上から下方向のジェスチャーの場合； `{ action: 'gesture', from:'north', to: 'south', seq: 99, raw:・・・ }`
 
-## ontouchプロパティ  
-  touchジェスチャー（タッチイベント）通知を受け取ります。ontouchコールバック関数で受け取るオブジェクトの意味は次の通り。  
+## onontouch = function(touch)
+  touchジェスチャー（タッチイベント）通知を受け取ります。ontouchコールバック関数で受け取る`touch`オブジェクトの内容は次の通り。  
   
-  プロパティ | 意味
+  プロパティ | 内容
   |--|--|
   action | 'touch'（固定）
   positions | [ 'west'｜'east'｜'north'｜'south'｜'center' ]
   seq | Flick Hat受信データ通番：0～255
+  raw | ローデータ
 
 `positions`にはタッチされた場所が以下の文字列の配列で格納されます。
 - 'west'：Flick Hatの左側部分
@@ -127,44 +129,47 @@ Flick Hatから各ジェスチャー情報を受け取るためのコールバ�
 - 'south'：下側部分
 - 'center'：中央部分
 
- 例）下側と中央部がタッチされた場合； `{ action: 'touch', positions: ['south', 'center'], seq: 99 }`
+ 例）下側と中央部がタッチされた場合； `{ action: 'touch', positions: ['south', 'center'], seq: 99, raw:・・・ }`
  
-## ontapプロパティ  
-  tapジェスチャー（タップイベント）通知を受け取ります。ontapコールバック関数で受け取るオブジェクトの意味は次の通り。  
+## ontap = function(tap)
+  tapジェスチャー（タップイベント）通知を受け取ります。ontapコールバック関数で受け取る`tap`オブジェクトの内容は次の通り。  
   
-  プロパティ | 意味
+  プロパティ | 内容
   |--|--|
   action | 'tap'（固定）
   positions | [ 'west'｜'east'｜'north'｜'south'｜'center' ]
   seq | Flick Hat受信データ通番：0～255
+  raw | ローデータ
 
 `positions`にはタッチされた場所が配列で格納されます。
 
-例）右側がタップされた場合； `{ action: 'tap', positions: ['east'], seq:99 }`
+例）右側がタップされた場合； `{ action: 'tap', positions: ['east'], seq:99, raw:・・・ }`
 
-## ondoubletapプロパティ  
-  double tapジェスチャー（ダブルタップイベント）通知を受け取ります。ondoubletapコールバック関数で受け取るオブジェクトの意味は次の通り。  
+## ondoubletap = function(doubletap)
+  double tapジェスチャー（ダブルタップイベント）通知を受け取ります。ondoubletapコールバック関数で受け取る`doubletap`オブジェクトの内容は次の通り。  
   
-  プロパティ | 意味
+  プロパティ | 内容
   |--|--|
   action | 'doubletap'（固定）
   positions | [ 'west'｜'east'｜'north'｜'south'｜'center' ]
   seq | Flick Hat受信データ通番：0～255
+  raw | ローデータ
 
 `positions`にはタッチされた場所が配列で格納されます。
 
- 例）中央部がダブルタップされた場合； `{ action: 'doubletap', positions: ['center'], seq: 99 }`
+ 例）中央部がダブルタップされた場合； `{ action: 'doubletap', positions: ['center'], seq: 99, raw:・・・ }`
 
-## onairwheelプロパティ  
-  air wheelジェスチャー（時計回り、反時計回りのジェスチャー）通知を受け取ります。onairwheelコールバック関数で受け取るオブジェクトの意味は次の通り。  
+## onairwheel = function(airwheel)  
+  air wheelジェスチャー（時計回り、反時計回りのジェスチャー）通知を受け取ります。onairwheelコールバック関数で受け取る`airwheel`オブジェクトの内容は次の通り。  
   
-  プロパティ | 意味
+  プロパティ | 内容
   |--|--|
   delta | ジェスチャーで描いた円の角度（時計回りのジェスチャーは正数、反時計回りのジェスチャーは負数）
   rotation | ジェスチャーで描いた円周の数（時計回りのジェスチャーで増加、反時計回りのジェスチャーで減少）
   seq | Flick Hat受信データ通番：0～255
+  raw | ローデータ
 
- 例）時計回りのジェスチャーの場合； `{ delta: 22.5, rotation: 2, seq: 99 }`
+ 例）時計回りのジェスチャーの場合； `{ delta: 22.5, rotation: 2, seq: 99, raw:・・・ }`
 
 
 ```javascript
@@ -176,7 +181,7 @@ flickhat.onxyz = function(xyz) {
 flickhat.ongesture = function(gesture) {
   console.log(gesture); // { action: 'gesture', from:'north', to: 'south', seq: 99 }
 }
-flickhat.onontouch = function(ontouch) {
+flickhat.onontouch = function(touch) {
   console.log(touch); // { action: 'touche', positions: ['south', 'center'], seq: 99 }
 }
 flickhat.ontap = function(tap) {
