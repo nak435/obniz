@@ -29,7 +29,7 @@ Flick Largeには`red`と`green`の2色LEDが付いていますが、このラ�
 
 ## wired( { vcc, } sda, scl, reset, ts, gnd )
 
-`vcc(5v), sda, scl, reset, ts, gnd`をobnizに接続し、接続したioをプログラムで以下のように記述します。
+`VCC(5v), SDA, SCL, RESET, TS, GND`をobnizに接続し、接続したioをプログラムで以下のように記述します。
 3.3V電源を別に用意した場合は、vccを省略します。
 
 ```javascript
