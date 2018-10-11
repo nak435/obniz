@@ -29,7 +29,7 @@ Flick Largeには`red`と`green`の2色LEDが付いていますが、このラ�
 ## wired( { vcc, } sda, scl, reset, ts, gnd )
 
 `VCC(5v), SDA, SCL, RESET, TS, GND`をobnizに接続し、接続したioをプログラムで以下のように記述します。
-3.3V電源を別に用意した場合は、vccを省略します。
+3.3Vや5V電源を別に用意した場合は、vccを省略します。
 
 ```javascript
 // Javascript Example
@@ -85,7 +85,7 @@ Flick Hatから各ジェスチャー情報を受け取るためのコールバ�
 
 ## onxyzプロパティ
 
-  ジェスチャーした位置を受け取ります。コールバック関数で受け取るオブジェクトの意味は次の通り。  
+  ジェスチャーした位置を受け取ります。onxyzコールバック関数で受け取るオブジェクトの意味は次の通り。  
   
   プロパティ | 意味
   |--|--|
@@ -100,7 +100,7 @@ Flick Hatから各ジェスチャー情報を受け取るためのコールバ�
 
 
 ## ongestureプロパティ  
-  flickジェスチャー（上から下、左から右などのジェスチャー）通知を受け取ります。コールバック関数で受け取るオブジェクトの意味は次の通り。  
+  flickジェスチャー（上から下、左から右などのジェスチャー）通知を受け取ります。ongestureコールバック関数で受け取るオブジェクトの意味は次の通り。  
   
   プロパティ | 意味
   |--|--|
@@ -112,40 +112,51 @@ Flick Hatから各ジェスチャー情報を受け取るためのコールバ�
   例）上から下方向のジェスチャーの場合； `{ action: 'gesture', from:'north', to: 'south', seq: 99 }`
 
 ## ontouchプロパティ  
-  touchジェスチャー（タッチイベント）通知を受け取ります。コールバック関数で受け取るオブジェクトの意味は次の通り。  
+  touchジェスチャー（タッチイベント）通知を受け取ります。ontouchコールバック関数で受け取るオブジェクトの意味は次の通り。  
   
   プロパティ | 意味
   |--|--|
-  action | 'touche'（固定）
-  positions | [ 'west'｜'east'｜'north'｜'south'｜'center' ] //タッチされた場所が配列で格納される<br>　'west'：Flick Hatの左側部分、<br>　'east'：右側部分、 <br>　'north'：上側部分、 <br>　'south'：下側部分、 <br>　'center'：中央部分
+  action | 'touch'（固定）
+  positions | [ 'west'｜'east'｜'north'｜'south'｜'center' ]
   seq | Flick Hat受信データ通番：0～255
 
- 例）下側と中央部がタッチされた場合； `{ action: 'touche', positions: ['south', 'center'], seq: 99 }`
+`positions`にはタッチされた場所が以下の文字列の配列で格納されます。
+- 'west'：Flick Hatの左側部分
+- 'east'：右側部分
+- 'north'：上側部分
+- 'south'：下側部分
+- 'center'：中央部分
+
+ 例）下側と中央部がタッチされた場合； `{ action: 'touch', positions: ['south', 'center'], seq: 99 }`
  
 ## ontapプロパティ  
-  tapジェスチャー（タップイベント）通知を受け取ります。コールバック関数で受け取るオブジェクトの意味は次の通り。  
+  tapジェスチャー（タップイベント）通知を受け取ります。ontapコールバック関数で受け取るオブジェクトの意味は次の通り。  
   
   プロパティ | 意味
   |--|--|
   action | 'tap'（固定）
-  positions | [ 'west'｜'east'｜'north'｜'south'｜'center' ] //タップされた場所が配列で格納される
+  positions | [ 'west'｜'east'｜'north'｜'south'｜'center' ]
   seq | Flick Hat受信データ通番：0～255
 
- 例）右側がタップされた場合； `{ action: 'tap', positions: ['east'], seq:99 }`
+`positions`にはタッチされた場所が配列で格納されます。
+
+例）右側がタップされた場合； `{ action: 'tap', positions: ['east'], seq:99 }`
 
 ## ondoubletapプロパティ  
-  double tapジェスチャー（ダブルタップイベント）通知を受け取ります。コールバック関数で受け取るオブジェクトの意味は次の通り。  
+  double tapジェスチャー（ダブルタップイベント）通知を受け取ります。ondoubletapコールバック関数で受け取るオブジェクトの意味は次の通り。  
   
   プロパティ | 意味
   |--|--|
   action | 'doubletap'（固定）
-  positions | [ 'west'｜'east'｜'north'｜'south'｜'center' ] //ダブルタップされた場所が配列で格納される
+  positions | [ 'west'｜'east'｜'north'｜'south'｜'center' ]
   seq | Flick Hat受信データ通番：0～255
+
+`positions`にはタッチされた場所が配列で格納されます。
 
  例）中央部がダブルタップされた場合； `{ action: 'doubletap', positions: ['center'], seq: 99 }`
 
 ## onairwheelプロパティ  
-  air wheelジェスチャー（時計回り、反時計回りのジェスチャー）通知を受け取ります。コールバック関数で受け取るオブジェクトの意味は次の通り。  
+  air wheelジェスチャー（時計回り、反時計回りのジェスチャー）通知を受け取ります。onairwheelコールバック関数で受け取るオブジェクトの意味は次の通り。  
   
   プロパティ | 意味
   |--|--|
