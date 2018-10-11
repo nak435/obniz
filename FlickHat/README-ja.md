@@ -1,10 +1,16 @@
 # Flick HAT
 
-
-Flick HAT / Flick Zero / Flick Largeはジェスチャートラッキングができるユニークなパーツです。もともとはRaspberry Piに向けたパーツですが、obnizから利用するためのライブラリを作成しました。
+[Flick HAT](https://uk.pi-supply.com/products/flick-hat-3d-tracking-gesture-hat-raspberry-pi) / 
+[Flick Zero](https://uk.pi-supply.com/products/flick-zero-3d-tracking-gesture-phat-pi-zero) / 
+[Flick Large](https://uk.pi-supply.com/products/flick-large-standalone-3d-tracking-gesture-breakout)
+はジェスチャートラッキングができるユニークなパーツです。もともとはRaspberry Piに向けたパーツですが、obnizから利用するためのライブラリを作成しました。
 
 ![](./flick_hat.png)
 
+日本では
+[マルツ](https://www.marutsu.co.jp/pc/i/839457/)や
+[RS](https://jp.rs-online.com/web/p/human-machine-interface-hmi-development-kits/1365431/)
+から購入可能です。
 
 
 ## obnizとの接続
