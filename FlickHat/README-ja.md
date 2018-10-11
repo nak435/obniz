@@ -179,19 +179,19 @@ flickhat.onxyz = function(xyz) {
   console.log(xyz); // { x: 0.2, y:0.5, z:0.4, seq: 99 }
 }
 flickhat.ongesture = function(gesture) {
-  console.log(gesture); // { action: 'gesture', from:'north', to: 'south', seq: 99 }
+  console.log(gesture); // { action: 'gesture', from:'north', to: 'south', seq: 99, raw:・・・ }
 }
 flickhat.onontouch = function(touch) {
-  console.log(touch); // { action: 'touche', positions: ['south', 'center'], seq: 99 }
+  console.log(touch); // { action: 'touche', positions: ['south', 'center'], seq: 99, raw:・・・ }
 }
 flickhat.ontap = function(tap) {
-  console.log(tap); // { action: 'tap', positions: ['east'], seq:99 }
+  console.log(tap); // { action: 'tap', positions: ['east'], seq:99, raw:・・・ }
 }
 flickhat.ondoubletap = function(doubletap) {
-  console.log(doubletap); // { action: 'doubletap', positions: ['center'], seq: 99 }
+  console.log(doubletap); // { action: 'doubletap', positions: ['center'], seq: 99, raw:・・・ }
 }
 flickhat.onairwheel = function(airwheel) {
-  console.log(airwheel); // { delta: 22.5, rotation: 2, seq: 99 }
+  console.log(airwheel); // { delta: 22.5, rotation: 2, seq: 99, raw:・・・ }
 }
 await flickhat.start();
 obniz.repeat(async function() {
