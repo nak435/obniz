@@ -10,7 +10,7 @@ scrollクラスを生成します。引数にobnizのインスタンスを指定
 
 ```javascript
 //Javascript
-const obniz = new Obniz("");
+const obniz = new Obniz("xxxx-xxxx");
 const scroll = new ScrollDisplay(obniz);
 ```
 
