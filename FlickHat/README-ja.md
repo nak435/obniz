@@ -3,7 +3,7 @@
 [Flick HAT](https://uk.pi-supply.com/products/flick-hat-3d-tracking-gesture-hat-raspberry-pi) / 
 [Flick Zero](https://uk.pi-supply.com/products/flick-zero-3d-tracking-gesture-phat-pi-zero) / 
 [Flick Large](https://uk.pi-supply.com/products/flick-large-standalone-3d-tracking-gesture-breakout)
-はジェスチャートラッキングができるユニークなパーツです。もともとはRaspberry Piに向けたパーツですが、obnizから利用するためのライブラリを作成しました。
+はジェスチャートラッキングができるユニークなパーツです。もともとRaspberry Pi向けのこのパーツを、obnizから利用するためのライブラリです。
 
 ![](./flick_hat.png)
 
