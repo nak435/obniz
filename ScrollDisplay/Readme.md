@@ -6,11 +6,12 @@ node.js環境の場合はnode-canvasを必要とします。
 
 # 使い方
 
-scrollクラスを生成します。
+scrollクラスを生成します。引数にobnizのインスタンスを指定します。
 
 ```javascript
 //Javascript
-const scroll = obniz.wired("ScrollDisplay");
+const obniz = new Obniz("");
+const scroll = new ScrollDisplay(obniz);
 ```
 
 ## font(font, size)
