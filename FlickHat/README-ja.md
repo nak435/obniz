@@ -16,14 +16,14 @@
 
 Flick HATとFlick Zeroは3.3V駆動のため、電源はobnizのioピンから直接取ることができません。3.3V電源を別に用意してください。電源以外の`SDA, SCL, Gnd, Reset, TS`は、下図を参考にobnizのioピンに接続します。  
 
-![](./flick_hat_wired_50.png)
+Flick HAT / Flick Zero![](./flick_hat_wired_50.png)
 
 
 Flick Largeは5V駆動できるため、電源も含めてすべてobnizのioピンに接続します。
 
 Flick Largeには`red`と`green`の2色LEDが付いていますが、このライブラリでは制御しません。もし使用する場合は、[LEDライブラリ](https://obniz.io/sdk/parts/LED/README.md)を組み合わせることにより、必要に応じて制御してください。
 
-![](./flick_large_wired_50.png)
+Flick Large![](./flick_large_wired_50.png)
 ![](./flick_large_wired_closeup.png)
 
 ## wired( { vcc, } sda, scl, reset, ts, gnd )
