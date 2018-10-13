@@ -65,7 +65,7 @@ scroll.start();
 
 ## stop()
 
-スクロールを停止します。
+スクロールを停止します。なお、obnizにデータが溜まっている場合は、直ちに停止しないことがあります。
 
 ```javascript
 //Javascript
