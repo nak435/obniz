@@ -36,14 +36,6 @@ Flick Largeには`red`と`green`の2色LEDが付いていますが、このラ�
 let flickhat = obniz.wired("FlickHat", { vcc: 0, sda: 1, scl: 2, reset: 3, ts: 4, gnd: 5 });
 ```
 
-Flick LargeでLEDを制御する場合の例；
-
-```javascript
-// Javascript Example
-let led1 = obniz.wired("LED", { anode: 6 });
-let led2 = obniz.wired("LED", { anode: 7 });
-```
-
 ## [await] start({callbackFwInfo})
 
 Flick Hatをリセットして使用できる状態にします。Flick Hatのファームウェア情報を受け取る場合は、引数にコールバック関数を指定します。
@@ -52,7 +44,7 @@ Flick Hatをリセットして使用できる状態にします。Flick Hatの�
 // Javascript Example
 let flickhat = obniz.wired("FlickHat", { vcc: 0, sda: 1, scl: 2, reset: 3, ts: 4, gnd: 5 });
 await flickhat.start(function(fwinfo) {
-  console.log(fwinfo.fwVersion); //
+  console.log(fwinfo.fwVersion); //1.3.14;p:HillstarV01;x: ;DSP:ID9000r2963;i:B;f:22500;nMsg;s:Rel_1_3_prer1784:NM;
 });
 ```
 
