@@ -10,7 +10,7 @@ DP-EH600はobnizからUARTインタフェースで出力できるサーマルプ
 
 DP-EH600の電源と信号線の両方のコネクタをobnizに接続します。DP-EH600のコネクタはメスのため、obnizに[両端オスのピンヘッド](http://akizukidenshi.com/catalog/g/gC-09056/)を挿すと便利です。
 
-![](IMG_5016.JPG)
+![](IMG_5016-2.JPG)
 
 もし、プリンタからRTS信号を引き出している場合は、この信号線もobnizに接続します。
 
@@ -123,7 +123,7 @@ pr.printText("noitator");
 pr.setPrintMode();
 ```
 
-![](IMG_5018.JPG)
+![](IMG_5018-2.JPG)
 
 
 
@@ -155,6 +155,7 @@ pr.printText('\t\t7文字目のテキスト');
 pr.printText('\t\t\t14文字目のテキスト');
 ```
 
+![](IMG_5019-2.JPG)
 
 
 ## printBarcode(barcodeType, code {, pos}) 
@@ -191,6 +192,7 @@ codeの文字を印刷する場合、印字位置を`pos`に指定します。
 pr.printBarcode(pr.barcodeType.jan13, "4901234567890", 2);
 ```
 
+![](IMG_5021-2.JPG)
 
 
 ## printBitmap(bitmap, width, height {, reverse}) 
